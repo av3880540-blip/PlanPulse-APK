@@ -1,0 +1,354 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PlanPulse — Smart Recharge, OTT & Monetized Deal Tracker</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: {
+              50: '#FDFBF7',
+              100: '#FAF6F0',
+              200: '#F2EAE0',
+              300: '#E5D8C8',
+            },
+            forest: {
+              50: '#EEF5F1',
+              100: '#D4E6DC',
+              500: '#2A634B',
+              600: '#1E4635',
+              700: '#153226',
+              800: '#0E2219',
+            },
+            espresso: {
+              400: '#7A6356',
+              500: '#5C463B',
+              600: '#423026',
+              700: '#2C1E16',
+              800: '#1D130E',
+              900: '#120C09',
+            },
+            amberwarm: {
+              100: '#FEF3C7',
+              500: '#D97706',
+              600: '#B45309',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'soft': '0 10px 25px -5px rgba(44, 30, 22, 0.08), 0 4px 10px -3px rgba(44, 30, 22, 0.04)',
+            'card': '0 4px 16px rgba(44, 30, 22, 0.05)',
+            'nav': '0 -6px 24px rgba(44, 30, 22, 0.09)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #E5D8C8;
+      color: #2C1E16;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overscroll-behavior-y: none;
+    }
+    /* Espresso Dark Mode (Pro Feature) */
+    body.espresso-dark #app-shell {
+      background-color: #1D130E;
+      color: #FAF6F0;
+    }
+    body.espresso-dark .theme-card {
+      background-color: #2C1E16 !important;
+      border-color: #423026 !important;
+      color: #FAF6F0 !important;
+    }
+    body.espresso-dark .theme-subcard {
+      background-color: #1D130E !important;
+      border-color: #423026 !important;
+      color: #F2EAE0 !important;
+    }
+    body.espresso-dark .theme-text-main {
+      color: #FAF6F0 !important;
+    }
+    body.espresso-dark .theme-text-muted {
+      color: #C7B6A8 !important;
+    }
+    body.espresso-dark header,
+    body.espresso-dark nav {
+      background-color: rgba(29, 19, 14, 0.95) !important;
+      border-color: #423026 !important;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes pulseSubtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+    .animate-pulse-subtle {
+      animation: pulseSubtle 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(16px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.22s ease-out forwards;
+    }
+    @keyframes shakePin {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shakePin 0.32s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center">
+
+  <!-- ==================== 1. BULLETPROOF PIN / VAULT LOCK OVERLAY ==================== -->
+  <div id="login-screen" class="fixed inset-0 z-50 w-full max-w-[430px] mx-auto bg-cream-100 flex flex-col justify-between p-6 shadow-2xl transition-opacity duration-200">
+    <!-- Branding Header -->
+    <div class="pt-4 text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-forest-600 text-cream-50 flex items-center justify-center shadow-lg mb-3">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <h1 class="text-2xl font-extrabold tracking-tight text-espresso-700">PlanPulse Vault</h1>
+      <p class="text-xs font-medium text-espresso-400 mt-1">Zero-Effort Recharge, OTT & Deal Tracker</p>
+    </div>
+
+    <!-- PIN Indicator Dots & Quick Unlock Controls -->
+    <div class="my-auto flex flex-col items-center">
+      <p class="text-sm font-bold text-espresso-600 mb-4">Enter 4-Digit Vault PIN</p>
+
+      <div id="pin-dots" class="flex gap-4 mb-3">
+        <span class="w-4 h-4 rounded-full border-2 border-forest-600 transition-all duration-150"></span>
+        <span class="w-4 h-4 rounded-full border-2 border-forest-600 transition-all duration-150"></span>
+        <span class="w-4 h-4 rounded-full border-2 border-forest-600 transition-all duration-150"></span>
+        <span class="w-4 h-4 rounded-full border-2 border-forest-600 transition-all duration-150"></span>
+      </div>
+
+      <p id="pin-error" class="text-xs font-bold text-red-600 min-h-[18px] text-center"></p>
+
+      <!-- Prominent 1-Tap Quick Unlock Button -->
+      <button type="button" id="btn-quick-unlock" class="mt-2 w-full max-w-[270px] py-3 px-4 rounded-2xl bg-forest-600 text-cream-50 text-xs font-extrabold shadow-md hover:bg-forest-700 active:scale-95 transition flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+        </svg>
+        <span>Quick Unlock (Demo: <span id="hint-pin-display" class="font-mono underline">1234</span>)</span>
+      </button>
+
+      <!-- Failsafe Reset Vault / Bypass Lock Link -->
+      <button type="button" id="btn-bypass-reset" class="mt-2.5 text-[11px] font-bold text-espresso-400 hover:text-espresso-700 underline underline-offset-2 py-1 px-2 transition">
+        Reset Vault / Bypass Lock
+      </button>
+    </div>
+
+    <!-- Numeric Keypad (Standard DOM Event Delegation) -->
+    <div id="pin-keypad" class="grid grid-cols-3 gap-2.5 pb-2 select-none">
+      <button type="button" data-key="1" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">1</button>
+      <button type="button" data-key="2" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">2</button>
+      <button type="button" data-key="3" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">3</button>
+      <button type="button" data-key="4" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">4</button>
+      <button type="button" data-key="5" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">5</button>
+      <button type="button" data-key="6" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">6</button>
+      <button type="button" data-key="7" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">7</button>
+      <button type="button" data-key="8" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">8</button>
+      <button type="button" data-key="9" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">9</button>
+      <button type="button" data-action="clear" class="h-14 rounded-2xl bg-cream-200 text-xs font-extrabold uppercase tracking-wider text-espresso-500 active:bg-cream-300 active:scale-95 transition">Clear</button>
+      <button type="button" data-key="0" class="h-14 rounded-2xl bg-cream-50 border border-cream-300 text-xl font-bold text-espresso-700 shadow-xs active:bg-cream-200 active:scale-95 transition">0</button>
+      <button type="button" data-action="backspace" aria-label="Backspace" class="h-14 rounded-2xl bg-cream-200 flex items-center justify-center text-espresso-600 active:bg-cream-300 active:scale-95 transition">
+        <svg class="w-6 h-6 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN MOBILE APP SHELL (MAX-WIDTH 430px) ==================== -->
+  <div id="app-shell" class="w-full max-w-[430px] min-h-screen bg-cream-100 relative flex flex-col shadow-2xl overflow-x-hidden transition-colors duration-300">
+
+    <!-- Top App Header -->
+    <header class="sticky top-0 z-30 bg-cream-100/95 backdrop-blur-md border-b border-cream-300/70 px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-forest-600 text-cream-50 flex items-center justify-center shadow-xs shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-base font-extrabold text-espresso-700 theme-text-main leading-tight">PlanPulse</h1>
+            <span id="header-pro-badge" class="hidden px-1.5 py-0.5 rounded-md bg-amberwarm-500 text-white text-[9px] font-extrabold tracking-wider uppercase">PRO</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+            <span class="text-[11px] font-semibold text-forest-600">Zero-SMS Bridge Active</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Upgrade / Pro Badge -->
+        <button type="button" id="header-upgrade-btn" class="px-2.5 py-1.5 rounded-xl bg-amberwarm-100 border border-amberwarm-500/30 text-amberwarm-600 text-xs font-extrabold hover:bg-amber-200/70 active:scale-95 transition">
+          ★ Pro ₹49
+        </button>
+
+        <!-- Test Auto-Detect Simulator -->
+        <button type="button" id="btn-open-simulator" class="px-2.5 py-1.5 rounded-xl bg-forest-600 text-cream-50 text-xs font-bold shadow-xs hover:bg-forest-700 active:scale-95 transition flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          Auto-Detect
+        </button>
+
+        <!-- Lock Vault Button -->
+        <button type="button" id="btn-lock-app" class="p-2 rounded-xl bg-cream-200 text-espresso-600 hover:bg-cream-300 transition" title="Lock Vault">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Scrollable Viewport -->
+    <main id="main-viewport" class="flex-1 px-4 pt-4 pb-36 space-y-5">
+
+      <!-- ==================== TAB 1: TRACKER ==================== -->
+      <section id="tab-dashboard" class="space-y-5 animate-slide-up">
+        <!-- Summary Hero Card -->
+        <div class="rounded-3xl bg-forest-600 text-cream-50 p-5 shadow-soft relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-forest-500/40 pointer-events-none"></div>
+          <div class="absolute -bottom-10 -left-6 w-28 h-28 rounded-full bg-forest-700/50 pointer-events-none"></div>
+
+          <div class="relative z-10 flex justify-between items-start gap-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-forest-100">Monthly Burn Rate</p>
+              <h2 id="hero-monthly-burn" class="text-3xl font-extrabold mt-1">₹0</h2>
+              <p id="hero-daily-avg" class="text-xs text-forest-100 mt-1">≈ ₹0.0 / day across active plans</p>
+            </div>
+            <div class="flex flex-col gap-1.5 items-end">
+              <button type="button" id="btn-open-add-plan" class="px-3 py-2 rounded-xl bg-cream-50 text-forest-700 text-xs font-extrabold shadow-xs hover:bg-cream-100 active:scale-95 transition">
+                + Add Plan
+              </button>
+              <button type="button" id="btn-export-csv" class="px-2.5 py-1 rounded-lg bg-forest-700/80 border border-forest-500 text-[11px] font-bold text-forest-100 hover:bg-forest-700 transition">
+                Export CSV ↗
+              </button>
+            </div>
+          </div>
+
+          <div class="relative z-10 grid grid-cols-3 gap-2.5 mt-5 pt-4 border-t border-forest-500/60 text-center">
+            <div class="bg-forest-700/50 rounded-2xl p-2.5">
+              <p class="text-[11px] text-forest-100">Active Plans</p>
+              <p id="stat-active-count" class="text-base font-extrabold mt-0.5">0</p>
+            </div>
+            <div class="bg-forest-700/50 rounded-2xl p-2.5">
+              <p class="text-[11px] text-forest-100">Expiring ≤5d</p>
+              <p id="stat-expiring-count" class="text-base font-extrabold text-amber-300 mt-0.5">0</p>
+            </div>
+            <div class="bg-forest-700/50 rounded-2xl p-2.5">
+              <p class="text-[11px] text-forest-100">Receivables</p>
+              <p id="stat-receivable-sum" class="text-base font-extrabold text-emerald-300 mt-0.5">₹0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Chips -->
+        <div id="plan-filter-bar" class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button type="button" data-filter="all" class="plan-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-espresso-700 text-cream-50 transition">All Plans</button>
+          <button type="button" data-filter="telecom" class="plan-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream-50 text-espresso-600 border border-cream-300 transition">Mobile & Fiber</button>
+          <button type="button" data-filter="ott" class="plan-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream-50 text-espresso-600 border border-cream-300 transition">OTT & Music</button>
+          <button type="button" data-filter="expiring" class="plan-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream-50 text-espresso-600 border border-cream-300 transition">Expiring Soon</button>
+        </div>
+
+        <!-- Active Plans Cards -->
+        <div id="plans-list" class="space-y-3.5"></div>
+
+        <!-- Auto-Detection Bridge Feed -->
+        <div class="pt-1">
+          <div class="flex items-center justify-between mb-2.5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-espresso-500 theme-text-muted">Auto-Detection Bridge Feed</h3>
+            <span class="text-[11px] font-semibold text-forest-600">100% On-Device</span>
+          </div>
+          <div id="detection-feed" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: CREDITS & RECEIVABLES ==================== -->
+      <section id="tab-credits" class="hidden space-y-5 animate-slide-up">
+        <div class="rounded-3xl bg-espresso-700 text-cream-50 p-5 shadow-soft">
+          <div class="flex justify-between items-center gap-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-cream-300">Pending Receivables</p>
+              <h2 id="credits-total-pending" class="text-3xl font-extrabold mt-1">₹0</h2>
+              <p id="credits-tier-note" class="text-xs text-cream-300 mt-1">Free Tier: up to 3 active splits</p>
+            </div>
+            <button type="button" id="btn-open-add-credit" class="px-3.5 py-2.5 rounded-2xl bg-forest-500 text-cream-50 text-xs font-extrabold shadow-xs hover:bg-forest-600 active:scale-95 transition shrink-0">
+              + Add Split
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-espresso-500 theme-text-muted mb-3">Friends & Split Balances</h3>
+          <div id="credits-list" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: DEALS & AFFILIATE HUB ==================== -->
+      <section id="tab-deals" class="hidden space-y-4 animate-slide-up">
+        <div class="rounded-3xl bg-cream-50 theme-card border border-cream-300 p-4 shadow-card flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-espresso-700 theme-text-main">Quick-Commerce & Deal Hub</h2>
+            <p class="text-xs text-espresso-400 theme-text-muted mt-0.5">Tap any partner for instant deals & tracked cashback.</p>
+          </div>
+          <button type="button" id="btn-edit-affiliate-links" class="px-3 py-1.5 rounded-xl bg-forest-50 border border-forest-100 text-forest-700 text-[11px] font-extrabold shrink-0 hover:bg-forest-100 transition">
+            Edit Links
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3" id="deals-grid"></div>
+
+        <!-- Pro Upgrade Promo Card -->
+        <div id="deals-pro-promo" class="rounded-3xl bg-forest-600 text-cream-50 p-4 shadow-soft flex items-center justify-between gap-3">
+          <div>
+            <span class="px-2 py-0.5 rounded-md bg-amberwarm-500 text-white text-[10px] font-extrabold uppercase">PlanPulse Pro</span>
+            <h3 class="text-sm font-extrabold mt-1">Remove Ads & Unlock Unlimited Splits</h3>
+            <p class="text-[11px] text-forest-100 mt-0.5">One-time ₹<span class="pro-price-display">49</span> UPI unlock • Lifetime access</p>
+          </div>
+          <button type="button" id="btn-deals-unlock-pro" class="px-3.5 py-2 rounded-xl bg-cream-50 text-forest-700 text-xs font-extrabold shrink-0 hover:bg-cream-100 active:scale-95 transition">
+            Unlock
+          </button>
+        </div>
+
+        <p class="text-[11px] text-center text-espresso-400 theme-text-muted px-2 leading-relaxed">
+          Affiliate Disclosure: PlanPulse may earn a small partner commission when you shop through featured links at zero extra cost to you.
+        </p>
+      </section>
+
+      <!-- ==================== TAB 4: MONETIZE & APK SETUP ==
