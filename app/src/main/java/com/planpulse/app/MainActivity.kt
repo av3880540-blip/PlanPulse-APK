@@ -20,7 +20,7 @@ class MainActivity : Activity() {
     private var webView: WebView? = null
     private var adView: AdView? = null
     private lateinit var adContainer: FrameLayout
-    private val TEST_BANNER_ID = "ca-app-pub-3940256099942544/9214589741"
+    private val TEST_BANNER_ID = "ca-app-pub-7525892694932948/7375011720"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
