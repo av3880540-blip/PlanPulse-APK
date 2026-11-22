@@ -13,7 +13,6 @@ import android.view.View
 import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.Toast
 import com.google.android.gms.ads.*
 
 class MainActivity : Activity() {
@@ -24,7 +23,6 @@ class MainActivity : Activity() {
     private val TEST_BANNER_ID = "ca-app-pub-3940256099942544/9214589741"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Global crash catcher: copies stacktrace to clipboard if anything fails
         Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
             try {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -52,7 +50,10 @@ class MainActivity : Activity() {
             )
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.databaseEnabled = true
             settings.allowFileAccess = true
+            settings.allowContentAccess = true
+            settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
             addJavascriptInterface(object {
                 @JavascriptInterface
@@ -64,8 +65,26 @@ class MainActivity : Activity() {
             }, "AndroidAdBridge")
 
             webViewClient = object : WebViewClient() {
+                // Serve local assets over a real HTTPS origin so localStorage & Vault work 100%
+                override fun shouldInterceptRequest(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): WebResourceResponse? {
+                    val url = request?.url?.toString() ?: return null
+                    if (url.startsWith("https://planpulse.local/")) {
+                        return try {
+                            val inputStream = assets.open("index.html")
+                            WebResourceResponse("text/html", "UTF-8", inputStream)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
+                    return super.shouldInterceptRequest(view, request)
+                }
+
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val url = request?.url?.toString() ?: return false
+                    if (url.startsWith("https://planpulse.local/")) return false
                     if (url.startsWith("upi://") || url.startsWith("http://") || url.startsWith("https://")) {
                         try {
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -88,17 +107,15 @@ class MainActivity : Activity() {
         rootLayout.addView(adContainer)
         setContentView(rootLayout)
 
-        webView?.loadUrl("file:///android_asset/index.html")
+        // Load over virtual HTTPS origin so localStorage persists vault PIN & data
+        webView?.loadUrl("https://planpulse.local/index.html")
 
-        // Initialize AdMob safely after UI is visible
         window.decorView.postDelayed({
             try {
                 MobileAds.initialize(this) {
                     loadBannerAd()
                 }
-            } catch (e: Throwable) {
-                Toast.makeText(this, "Ad init skipped: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            } catch (_: Throwable) { }
         }, 800)
     }
 
