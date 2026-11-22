@@ -894,7 +894,7 @@ dependencies {
 
       /*** 3. DEFAULT APPLICATION STATE
        */
-      const STORAGE_KEY = 'planpulse_vault_v2';
+      const STORAGE_KEY = 'planpulse_vault_v3';
 
       function getDefaultState() {
         return {
@@ -916,80 +916,9 @@ dependencies {
               { id: 'flipkart', name: 'Flipkart & Myntra', tag: 'Fashion & Gadgets', desc: 'SuperCoins & Insider drops', url: 'https://www.flipkart.com/', badge: 'bg-pink-100 text-pink-800' }
             ]
           },
-          plans: [
-            {
-              id: 'p1',
-              provider: 'Jio True 5G Prepaid',
-              category: 'telecom',
-              amount: 859,
-              validityDays: 84,
-              daysLeft: 4,
-              benefit: '2GB/day + Unlimited True 5G',
-              source: 'Auto-detected via GPay'
-            },
-            {
-              id: 'p2',
-              provider: 'Spotify Premium',
-              category: 'ott',
-              amount: 119,
-              validityDays: 30,
-              daysLeft: 19,
-              benefit: 'Ad-free Music • UPI AutoPay Mandate',
-              source: 'Auto-detected via PhonePe'
-            },
-            {
-              id: 'p3',
-              provider: 'Airtel Xstream Fiber',
-              category: 'telecom',
-              amount: 799,
-              validityDays: 30,
-              daysLeft: 23,
-              benefit: '100 Mbps Unlimited + JioHotstar',
-              source: 'Auto-detected via Airtel Thanks'
-            },
-            {
-              id: 'p4',
-              provider: 'Amazon Prime',
-              category: 'ott',
-              amount: 299,
-              validityDays: 30,
-              daysLeft: 11,
-              benefit: 'Prime Video + Free Same-Day Delivery',
-              source: 'Auto-detected via Amazon Pay'
-            }
-          ],
-          credits: [
-            {
-              id: 'c1',
-              person: 'Rohan Sharma',
-              amount: 450,
-              reason: 'Swiggy Late-Night Dinner Split',
-              status: 'pending',
-              date: '2 days ago'
-            },
-            {
-              id: 'c2',
-              person: 'Ananya Verma',
-              amount: 250,
-              reason: 'Spotify + Prime Shared Plan',
-              status: 'pending',
-              date: '5 days ago'
-            }
-          ],
-          feed: [
-            {
-              id: 'f1',
-              source: 'Google Pay',
-              summary: 'Matched ₹859 Jio plan → 84 days validity inferred',
-              time: 'Synced'
-            },
-            {
-              id: 'f2',
-              source: 'PhonePe AutoPay',
-              summary: 'Logged ₹119 Spotify Premium monthly renewal',
-              time: 'Synced'
-            }
-          ]
+          plans: [],
+          credits: [],
+          feed: []
         };
       }
 
