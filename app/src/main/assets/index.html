@@ -310,7 +310,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const STORAGE_KEY = 'planpulse_prod_v1';
+    const STORAGE_KEY = 'planpulse_prod_v2';
 
     function getDefaultState() {
       return {
@@ -396,7 +396,7 @@
       runRealSmsScan();
     }
 
-    function runRealSmsScan() {
+        function runRealSmsScan() {
       if (!appState.user) {
         openRegisterModal(false);
         return;
@@ -414,24 +414,44 @@
 
       try {
         const smsList = JSON.parse(raw);
-        if (!smsList.length) {
-          showToast('No recent recharge SMS found — add manually via + Add Plan');
-          return;
-        }
-
         const now = Date.now();
+        const userPhone = appState.user.phone;
+        const userOp = appState.user.operator.toUpperCase();
         let added = 0;
 
         smsList.forEach(item => {
-          const daysElapsed = Math.floor((now - item.dateMs) / (1000 * 60 * 60 * 24));
-          const daysLeft = item.validityDays - daysElapsed;
-          if (daysLeft <= 0) return; // Skip already expired plans
+          const text = (item.snippet || '').toLowerCase();
+          const senderUpper = (item.sender || '').toUpperCase();
 
-          const isOtt = /NETFLIX|HOTSTAR|SPOTIFY|PRIME|YOUTUBE/i.test(item.sender + ' ' + item.snippet);
+          // 1. Reject promotional offers, expiry alerts, and data usage warnings
+          const isSpamOrAlert = /(offer|avail|win|click|http|expired|expires|exhausted|data used|alert|reminder|due)/i.test(text);
+          if (isSpamOrAlert) return;
+
+          // 2. Must be a confirmed successful recharge/activation SMS
+          const isConfirmed = /(successful|activated|credited|thank you for recharging|recharge of)/i.test(text);
+          if (!isConfirmed) return;
+
+          // 3. If SMS mentions a 10-digit phone number, it MUST match the user's registered number
+          const phoneMatch = text.match(/(?:\+91[\-\s]?)?([6-9]\d{9})/);
+          if (phoneMatch && phoneMatch[1] !== userPhone) return;
+
+          // 4. Match user's registered operator (for telecom SMS)
+          const isOtt = /NETFLIX|HOTSTAR|SPOTIFY|PRIME|YOUTUBE/i.test(senderUpper + ' ' + text);
+          if (!isOtt && !senderUpper.includes(userOp) && !text.includes(userOp.toLowerCase())) return;
+
+          // 5. Require explicit validity days in SMS (no fake 28-day assumption)
+          const daysMatch = text.match(/(\d+)\s*days?/i);
+          if (!daysMatch) return;
+          const validDays = parseInt(daysMatch[1], 10);
+
+          const daysElapsed = Math.floor((now - item.dateMs) / (1000 * 60 * 60 * 24));
+          const daysLeft = validDays - daysElapsed;
+          if (daysLeft <= 0) return; // Already expired
+
           const category = isOtt ? 'ott' : 'telecom';
           const title = isOtt
             ? `${item.sender.replace(/[^A-Z]/gi, '') || 'OTT'} ₹${item.amount} Plan`
-            : `${appState.user.operator} ₹${item.amount} (${appState.user.phone})`;
+            : `${appState.user.operator} ₹${item.amount} (${userPhone})`;
 
           const duplicate = appState.plans.some(p => p.amount === item.amount && Math.abs(p.daysLeft - daysLeft) <= 1);
           if (!duplicate) {
@@ -440,9 +460,9 @@
               name: title,
               category,
               amount: item.amount,
-              totalDays: item.validityDays,
+              totalDays: validDays,
               daysLeft,
-              source: 'SMS Auto-Detected'
+              source: 'Verified SMS'
             });
             added++;
           }
@@ -450,12 +470,12 @@
 
         saveState();
         renderAll();
-        showToast(added > 0 ? `Detected ${added} active plan(s) from your SMS!` : 'All active SMS plans already synced');
+        showToast(added > 0 ? `Found ${added} active plan(s) on ${userPhone}` : `No active plans found on ${userPhone}`);
       } catch (e) {
         showToast('Could not parse SMS inbox');
       }
-    }
-
+        }
+    
     function addManualPlan() {
       const name = document.getElementById('planName').value.trim();
       const category = document.getElementById('planCategory').value;
