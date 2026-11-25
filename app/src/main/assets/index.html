@@ -122,7 +122,7 @@
         <div class="hero-stats">
           <div class="stat-box"><div class="stat-title">Active<br>Plans</div><div class="stat-val" id="statActive">0</div></div>
           <div class="stat-box"><div class="stat-title">Expiring<br>≤5d</div><div class="stat-val" style="color:#FBBF24;" id="statExpiring">0</div></div>
-          <div class="stat-box"><div class="stat-title">Receivables</div><div class="stat-val" style="color:#6EE7B7;" id="statCredits">₹0</div></div>
+          <div class="stat-box"><div class="stat-title">Past<br>Recharges</div><div class="stat-val" style="color:#6EE7B7;" id="statHistoryCount">0</div></div>
         </div>
       </div>
 
@@ -136,15 +136,15 @@
     </section>
 
     <!-- TAB 2: CREDITS -->
-    <section id="tab-credits" style="display:none;">
-      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-size:12px; color:var(--muted); font-weight:700;">PENDING RECEIVABLES</div>
-          <div style="font-size:24px; font-weight:800; color:var(--forest);" id="creditsTotalBig">₹0</div>
-        </div>
-        <button class="btn-pill btn-scan" onclick="openModal('addCreditModal')">+ Log Credit</button>
-      </div>
-      <div id="creditsList"></div>
+    <section id="tab-history" style="display:none;">
+  <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <div style="font-size:12px; color:var(--muted); font-weight:700;">APP RECHARGE SPEND</div>
+      <div style="font-size:24px; font-weight:800; color:var(--forest);" id="historyTotalBig">₹0</div>
+    </div>
+    <button class="btn-pill btn-scan" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">+ New Recharge</button>
+  </div>
+  <div id="historyList"></div>
     </section>
 
     <!-- TAB 3: FREECHARGE-STYLE RECHARGE & CHECK REWARDS -->
@@ -219,7 +219,7 @@
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="switchTab('tracker', this)">🏠<span>Tracker</span></button>
-    <button class="nav-item" onclick="switchTab('credits', this)">💳<span>Credits</span></button>
+    <button class="nav-item" onclick="switchTab('history', this)">📜<span>History</span></button>
     <button class="nav-item" onclick="switchTab('recharge', this)">⚡<span>Recharge</span></button>
     <button class="nav-item" onclick="switchTab('profile', this)">👤<span>Account</span></button>
   </nav>
@@ -395,7 +395,7 @@
         catalogFilter: 'popular',
         monetization: { upiId: 'Glottedu@ptaxis', payeeName: 'PlanPulse', proPrice: 49 },
         plans: [],
-        credits: [],
+        history: [],
         rewards: []
       };
     }
@@ -635,11 +635,15 @@
       if (!orderId) return showToast('Enter Partner Order ID');
       if (!upiId || !upiId.includes('@')) return showToast('Enter a valid UPI ID');
 
-      appState.rewards.unshift({
-        id: 'rew_' + Date.now(), phone, operator, amount, orderId, upiId,
-        status: 'Pending', cashback: 0,
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-      });
+          appState.history.unshift({
+      id: 'hist_' + Date.now(),
+      title: `${operator} ₹${amount} (${phone})`,
+      amount,
+      orderId,
+      date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      source: 'PlanPulse Store'
+    });
+      
       saveState();
       closeModal('claimModal');
       switchRechargeSubTab('rewards');
@@ -745,7 +749,7 @@
     }
 
     function switchTab(tab, btn) {
-      ['tracker', 'credits', 'recharge', 'profile'].forEach(t => {
+      ['tracker', 'history', 'recharge', 'profile'].forEach(t => {
         document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
       });
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -839,24 +843,24 @@
           </div>`;
       }).join('');
     }
-
-    function renderCredits() {
-      const list = document.getElementById('creditsList');
-      const total = appState.credits.reduce((s, c) => s + c.amount, 0);
-      document.getElementById('creditsTotalBig').textContent = mask('₹' + total);
-      if (!appState.credits.length) {
-        list.innerHTML = `<div class="empty-box"><h3>No Pending Receivables</h3><p>Log money friends owe you for shared recharges or subscriptions.</p></div>`;
-        return;
-      }
-      list.innerHTML = appState.credits.map(c => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-          <div><div style="font-weight:800; font-size:15px;">${c.person}</div><div style="font-size:12px; color:var(--muted);">${c.reason}</div></div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + c.amount)}</span>
-            <button class="btn-renew" style="padding:7px 10px;" onclick="settleCredit('${c.id}')">Settled ✓</button>
-          </div>
-        </div>`).join('');
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    const total = appState.history.reduce((s, h) => s + (parseFloat(h.amount) || 0), 0);
+    document.getElementById('historyTotalBig').textContent = mask('₹' + total);
+    if (!appState.history.length) {
+      list.innerHTML = `<div class="empty-box"><h3>No App Recharges Yet</h3><p>Only recharges completed through PlanPulse's Recharge tab are recorded here.</p></div>`;
+      return;
     }
+    list.innerHTML = appState.history.map(h => `
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="badge">${h.source}</span>
+          <div style="font-weight:800; font-size:15px; margin-top:5px;">${h.title}</div>
+          <div style="font-size:12px; color:var(--muted);">Order: ${h.orderId || 'N/A'} • ${h.date}</div>
+        </div>
+        <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + h.amount)}</span>
+      </div>`).join('');
+                                          }
 
     function renderAll() {
       if (appState.user) {
@@ -882,10 +886,10 @@
       document.getElementById('burnSub').textContent = `≈ ₹${appState.vaultLocked ? '••' : dailyBurn}/day across ${appState.plans.length} active plan(s)`;
       document.getElementById('statActive').textContent = appState.plans.length;
       document.getElementById('statExpiring').textContent = expiringCount;
-      document.getElementById('statCredits').textContent = mask('₹' + creditTotal);
+      document.getElementById('statHistoryCount').textContent = appState.history.length;
 
       renderPlans();
-      renderCredits();
+      renderhistory();
       renderRechargeCatalog();
       renderRewards();
     }
