@@ -240,21 +240,23 @@
     </div>
   </div>
 
-  <div class="overlay" id="checkoutModal">
+    <div class="overlay" id="checkoutModal">
     <div class="modal">
       <h2 id="coTitle">Jio ₹349 Recharge</h2>
-      <p id="coSubtitle">Number copied! Complete your recharge on our partner link, then submit your Order ID to earn cashback.</p>
+      <p id="coSubtitle">Number copied! Choose an app you already use to complete payment, then log your Order ID for cashback.</p>
       <div class="fc-specs" style="margin-bottom:14px;">
         <div><div class="fc-spec-lbl">Number</div><div class="fc-spec-val" id="coPhone">9876543210</div></div>
         <div><div class="fc-spec-lbl">Validity</div><div class="fc-spec-val" id="coValidity">28 Days</div></div>
         <div><div class="fc-spec-lbl">Est. Cashback</div><div class="fc-spec-val" style="color:var(--forest);" id="coEstCb">₹5–₹15</div></div>
       </div>
-      <button class="btn-full" onclick="proceedToCuelinks()">1. Pay & Recharge on Partner Site ↗</button>
-      <button class="btn-secondary" style="color:var(--forest); border-color:var(--forest);" onclick="switchToClaimFromCheckout()">2. Already Paid? Log Order for Cashback ✓</button>
+      <button class="btn-full" onclick="proceedToPartner('paytm')">1A. Pay via Paytm (No New Signup) ↗</button>
+      <button class="btn-full" style="background:var(--espresso); margin-top:8px;" onclick="proceedToPartner('amazon')">1B. Pay via Amazon Pay ↗</button>
+      <button class="btn-full" style="background:var(--forest-light); margin-top:8px;" onclick="proceedToPartner('operator')">1C. Pay via Operator App (MyJio / Vi) ↗</button>
+      <button class="btn-secondary" style="color:var(--forest); border-color:var(--forest); margin-top:12px;" onclick="switchToClaimFromCheckout()">2. Already Paid? Log Order for Cashback ✓</button>
       <button class="btn-secondary" onclick="closeModal('checkoutModal')">Close</button>
     </div>
-  </div>
-
+    </div>
+  
   <div class="overlay" id="claimModal">
     <div class="modal">
       <h2>🎁 Claim Recharge Cashback</h2>
@@ -330,12 +332,25 @@
     const STORAGE_KEY = 'planpulse_prod_v2';
     const ADMIN_PIN = '9999';
 
-    const CUELINKS_RECHARGE_URLS = {
-      Jio: 'https://www.freecharge.in/mobile-recharge',
-      Airtel: 'https://www.freecharge.in/mobile-recharge',
-      Vi: 'https://www.freecharge.in/mobile-recharge',
-      BSNL: 'https://www.freecharge.in/mobile-recharge'
+        // Paste your Cuelinks / EarnKaro tracking links below
+    const PARTNER_RECHARGE_URLS = {
+      paytm: 'https://paytm.com/recharge',
+      amazon: 'https://www.amazon.in/hfc/mobileRecharge',
+      Jio: 'https://www.jio.com/selfcare/recharge/mobility/',
+      Airtel: 'https://www.airtel.in/recharge-online',
+      Vi: 'https://www.myvi.in/prepaid/online-mobile-recharge',
+      BSNL: 'https://portal2.bsnl.in/myportal/quickrecharge.do'
     };
+
+    function proceedToPartner(channel) {
+      if (!selectedCheckoutPlan) return;
+      copyTextSafe(selectedCheckoutPlan.phone);
+      const url = (channel === 'operator')
+        ? (PARTNER_RECHARGE_URLS[selectedCheckoutPlan.op] || PARTNER_RECHARGE_URLS.paytm)
+        : (PARTNER_RECHARGE_URLS[channel] || PARTNER_RECHARGE_URLS.paytm);
+      showToast(`Copied ${selectedCheckoutPlan.phone} — Opening ${channel.toUpperCase()}`);
+      setTimeout(() => { window.location.href = url; }, 500);
+    }    
 
     const RECHARGE_CATALOG = {
       Jio: [
