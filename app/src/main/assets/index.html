@@ -473,8 +473,12 @@
       const raw = window.AndroidAdBridge.scanRealRechargeSms();
       if (raw === 'PERMISSION_DENIED') return showToast('Allow SMS permission & tap Auto-Detect again');
 
+            if (!raw || raw.startsWith('ERROR')) {
+        return showToast('SMS Bridge: ' + (raw || 'Empty response'));
+      }
+
       try {
-       const cleanedRaw = typeof raw === 'string' ? raw.replace(/[\u0000-\u001F]+/g, ' ') : '[]';
+        const cleanedRaw = raw.replace(/[\x00-\x1F\x7F]/g, ' ');
         const smsList = JSON.parse(cleanedRaw);
         const now = Date.now();
         const userPhone = appState.user.phone;
@@ -520,7 +524,7 @@
         saveState();
         renderAll();
         showToast(added > 0 ? `Found ${added} active plan(s) on ${userPhone}` : `No active plans found on ${userPhone}`);
-      } catch (e) { showToast('Could not parse SMS inbox'); }
+      } catch (e) { showToast('SMS Error: ' + e.message'); }
     }
           function addManualPlan() {
       const name = document.getElementById('planName').value.trim();
@@ -572,7 +576,7 @@
 
     function renderRechargeCatalog() {
       const grid = document.getElementById('rechargeCatalogGrid');
-      const items = RECHARGE_DEALS.filter(d => appState.catalogFilter === 'All' || d.cat === appState.catalogFilter);
+      let items = RECHARGE_DEALS.filter(d => appState.catalogFilter === 'All' || d.cat === appState.catalogFilter);
       if (!items.length) items = RECHARGE_DEALS;
       grid.innerHTML = items.map(d => `
         <div class="card">
