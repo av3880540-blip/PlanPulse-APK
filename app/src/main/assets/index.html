@@ -331,7 +331,8 @@
     <script>
     const STORAGE_KEY = 'planpulse_prod_v2';
     const ADMIN_PIN = '9999';
-
+    const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbynln2eJ6TJBxb2uor0mkVs5MdjM9VDm55ORioJIBXPGkL0IVXqlmtzUcxKJj1ATGVw/exec';
+    
         // Paste your Cuelinks / EarnKaro tracking links below
     const PARTNER_RECHARGE_URLS = {
       paytm: 'https://paytm.com/recharge',
@@ -550,12 +551,15 @@
       showToast('Plan removed');
     }
 
-    function switchRechargeSubTab(sub) {
+      function switchRechargeSubTab(sub) {
       document.getElementById('recharge-sub-plans').style.display = (sub === 'plans') ? 'block' : 'none';
       document.getElementById('recharge-sub-rewards').style.display = (sub === 'rewards') ? 'block' : 'none';
       document.getElementById('segPlansBtn').classList.toggle('active', sub === 'plans');
       document.getElementById('segRewardsBtn').classList.toggle('active', sub === 'rewards');
-      if (sub === 'rewards') renderRewards();
+      if (sub === 'rewards') {
+        renderRewards();
+        syncRewardsFromCloud();
+      }
     }
 
     function setCatalogFilter(cat, btn) {
@@ -566,102 +570,146 @@
     }
 
     function renderRechargeCatalog() {
-      const op = document.getElementById('fcOpSelect').value || 'Jio';
-      const list = (RECHARGE_CATALOG[op] || []).filter(p => p.cat === appState.catalogFilter);
-      document.getElementById('rechargeCatalogList').innerHTML = list.map(p => `
+      const grid = document.getElementById('rechargeCatalogGrid');
+      const items = RECHARGE_DEALS.filter(d => appState.catalogFilter === 'All' || d.cat === appState.catalogFilter);
+      grid.innerHTML = items.map(d => `
         <div class="card">
           <div class="card-row">
             <div>
-              <span class="badge badge-ok">${p.prob}% CASHBACK CHANCE</span>
-              <div class="plan-title">${op} ₹${p.price} Pack</div>
-              <div class="plan-meta">${p.perks}</div>
+              <span class="badge">${d.op} • ${d.cat}</span>
+              <span class="badge badge-ok" style="margin-left:4px;">${d.cashback}</span>
+              <div class="plan-title" style="margin-top:6px;">${d.title}</div>
+              <div class="plan-meta">${d.desc}</div>
             </div>
-            <div class="plan-price">₹${p.price}<br><span style="font-size:11px; color:var(--forest); font-weight:700;">+${p.cbRange} back</span></div>
+            <div style="text-align:right;">
+              <div class="plan-price">₹${d.price}</div>
+              <button class="btn-renew" style="margin-top:8px;" onclick="openPartnerPicker('${d.op}', ${d.price}, '${d.title.replace(/'/g, "\\'")}')">Recharge →</button>
+            </div>
           </div>
-          <div class="fc-specs">
-            <div><div class="fc-spec-lbl">Data</div><div class="fc-spec-val">${p.data}</div></div>
-            <div><div class="fc-spec-lbl">Validity</div><div class="fc-spec-val">${p.validity}</div></div>
-            <div><div class="fc-spec-lbl">Est. Reward</div><div class="fc-spec-val" style="color:var(--forest);">${p.cbRange}</div></div>
-          </div>
-          <button class="btn-renew" style="width:100%;" onclick="openCheckout('${op}', '${p.id}')">Select & Recharge ₹${p.price} →</button>
         </div>`).join('');
     }
 
-    function openCheckout(op, planId) {
-      const phone = document.getElementById('fcPhoneInput').value.replace(/\D/g, '');
-      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number first');
-      const plan = (RECHARGE_CATALOG[op] || []).find(p => p.id === planId);
-      if (!plan) return;
-
-      selectedCheckoutPlan = { op, phone, ...plan };
-      copyTextSafe(phone);
-      document.getElementById('coTitle').textContent = `${op} ₹${plan.price} Recharge`;
-      document.getElementById('coPhone').textContent = phone;
-      document.getElementById('coValidity').textContent = plan.validity;
-      document.getElementById('coEstCb').textContent = plan.cbRange;
-      openModal('checkoutModal');
+    function openPartnerPicker(op, price, title) {
+      pendingDeal = { op, price, title };
+      document.getElementById('partnerDealTitle').textContent = `${op} ₹${price} • ${title}`;
+      const list = document.getElementById('partnerButtonsList');
+      list.innerHTML = RECHARGE_PARTNERS.map(p => `
+        <div class="card" style="padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:800; font-size:14px;">${p.name}</div>
+            <div style="font-size:11px; color:var(--forest); font-weight:700;">${p.tag}</div>
+          </div>
+          <button class="btn-pill btn-scan" onclick="launchPartner('${p.url}')">Open & Pay</button>
+        </div>`).join('');
+      openModal('partnerModal');
     }
 
-    function proceedToCuelinks() {
-      if (!selectedCheckoutPlan) return;
-      copyTextSafe(selectedCheckoutPlan.phone);
-      const url = CUELINKS_RECHARGE_URLS[selectedCheckoutPlan.op] || 'https://www.freecharge.in/mobile-recharge';
-      showToast(`Copied ${selectedCheckoutPlan.phone} — Opening Partner Checkout`);
-      setTimeout(() => { window.location.href = url; }, 500);
+    function launchPartner(url) {
+      closeModal('partnerModal');
+      if (window.AndroidAdBridge && window.AndroidAdBridge.openExternalUrl) {
+        window.AndroidAdBridge.openExternalUrl(url);
+      } else {
+        window.open(url, '_blank');
+      }
+      setTimeout(() => {
+        if (pendingDeal) {
+          document.getElementById('claimOperator').value = pendingDeal.op;
+          document.getElementById('claimAmount').value = pendingDeal.price;
+        }
+        openClaimModal();
+      }, 600);
     }
 
-    function switchToClaimFromCheckout() {
-      closeModal('checkoutModal');
-      openClaimModal(selectedCheckoutPlan);
-    }
-
-    function openClaimModal(prefill) {
-      document.getElementById('claimPhone').value = prefill ? prefill.phone : (appState.user ? appState.user.phone : '');
-      document.getElementById('claimAmount').value = prefill ? prefill.price : '';
-      document.getElementById('claimOrderId').value = '';
-      document.getElementById('claimUpi').value = '';
+    function openClaimModal() {
+      if (appState.user && appState.user.phone) {
+        document.getElementById('claimPhone').value = appState.user.phone;
+      }
       openModal('claimModal');
     }
 
     function submitRewardClaim() {
-      const phone = document.getElementById('claimPhone').value.replace(/\D/g, '');
+      const phone = document.getElementById('claimPhone').value.replace(/\D/g, '').slice(-10);
       const amount = parseFloat(document.getElementById('claimAmount').value);
       const orderId = document.getElementById('claimOrderId').value.trim();
-      const upiId = document.getElementById('claimUpi').value.trim();
-      const operator = document.getElementById('fcOpSelect').value || (appState.user ? appState.user.operator : 'Jio');
+      const upiId = document.getElementById('claimUpiId').value.trim();
+      const operator = document.getElementById('claimOperator').value;
 
-      if (phone.length !== 10) return showToast('Enter valid 10-digit number');
-      if (!amount || amount <= 0) return showToast('Enter recharge amount');
-      if (!orderId) return showToast('Enter Partner Order ID');
-      if (!upiId || !upiId.includes('@')) return showToast('Enter a valid UPI ID');
+      if (phone.length !== 10) return showToast('Enter 10-digit recharged mobile number');
+      if (!amount || amount <= 0) return showToast('Enter valid recharge amount');
+      if (!orderId) return showToast('Enter your Transaction / Order ID');
+      if (!upiId || !upiId.includes('@')) return showToast('Enter valid UPI ID for cashback');
 
-          appState.history.unshift({
-      id: 'hist_' + Date.now(),
-      title: `${operator} ₹${amount} (${phone})`,
-      amount,
-      orderId,
-      date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-      source: 'PlanPulse Store'
-    });
-      
+      const newClaim = {
+        id: 'CLM' + Date.now().toString().slice(-6),
+        phone,
+        operator,
+        amount,
+        orderId,
+        upiId,
+        status: 'Pending',
+        cashback: 0,
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.rewards.unshift(newClaim);
+      appState.history.unshift({
+        id: 'hist_' + Date.now(),
+        title: `${operator} ₹${amount} (${phone})`,
+        amount,
+        orderId,
+        date: newClaim.date,
+        source: 'PlanPulse Store'
+      });
+
       saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create', claim: newClaim })
+      }).catch(() => {});
+
       closeModal('claimModal');
       switchRechargeSubTab('rewards');
-      showToast('Claim submitted! Status: Pending Verification');
+      showToast('Claim submitted! Status: Pending');
+    }
+
+    async function syncRewardsFromCloud() {
+      try {
+        const res = await fetch(SHEETS_API_URL);
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.claims)) {
+          appState.rewards = json.claims.map(c => ({
+            ...c,
+            phone: String(c.phone || '').replace(/^'/, '').trim()
+          })).reverse();
+          saveState();
+          renderRewards();
+          if (document.getElementById('adminContentBox').style.display === 'block') {
+            renderAdminClaims();
+          }
+        }
+      } catch (e) {}
     }
 
     function renderRewards() {
-      const approvedTotal = appState.rewards.filter(r => r.status === 'Approved').reduce((s, r) => s + (parseFloat(r.cashback) || 0), 0);
-      const pendingCount = appState.rewards.filter(r => r.status === 'Pending').length;
+      const userPhone = appState.user ? appState.user.phone : '';
+      const myClaims = userPhone
+        ? appState.rewards.filter(r => String(r.phone).replace(/^'/, '') === userPhone)
+        : appState.rewards;
+
+      const approvedTotal = myClaims
+        .filter(r => r.status === 'Approved')
+        .reduce((s, r) => s + (parseFloat(r.cashback) || 0), 0);
+      const pendingCount = myClaims.filter(r => r.status === 'Pending').length;
+
       document.getElementById('rewardsApprovedTotal').textContent = '₹' + approvedTotal;
-      document.getElementById('rewardsPendingSub').textContent = `${pendingCount} claim(s) awaiting Cuelinks confirmation`;
+      document.getElementById('rewardsPendingSub').textContent = `${pendingCount} claim(s) awaiting confirmation`;
 
       const list = document.getElementById('rewardsList');
-      if (!appState.rewards.length) {
+      if (!myClaims.length) {
         list.innerHTML = `<div class="empty-box"><h3>No Cashback Claims Yet</h3><p>Recharge through <b>Browse Plans</b> and tap <b>+ Claim Order</b> to track your cashback status here.</p><button class="btn-pill btn-scan" onclick="openClaimModal()">+ Submit Order ID</button></div>`;
         return;
       }
-      list.innerHTML = appState.rewards.map(r => {
+      list.innerHTML = myClaims.map(r => {
         const isApproved = r.status === 'Approved';
         return `
           <div class="card">
@@ -677,46 +725,44 @@
       }).join('');
     }
 
-    function openAdminModal() {
-      document.getElementById('adminPinInput').value = '';
-      document.getElementById('adminLockBox').style.display = 'block';
-      document.getElementById('adminContentBox').style.display = 'none';
-      openModal('adminModal');
-    }
-
     function unlockAdminPanel() {
       if (document.getElementById('adminPinInput').value !== ADMIN_PIN) return showToast('Wrong Admin PIN');
       document.getElementById('adminLockBox').style.display = 'none';
       document.getElementById('adminContentBox').style.display = 'block';
       renderAdminClaims();
+      syncRewardsFromCloud();
     }
 
     function renderAdminClaims() {
       const box = document.getElementById('adminClaimsList');
-      if (!appState.rewards.length) { box.innerHTML = `<p style="text-align:center; padding:12px;">No user claims submitted yet.</p>`; return; }
+      if (!appState.rewards.length) { box.innerHTML = '<p style="font-size:12px; color:var(--muted);">No claims submitted yet.</p>'; return; }
       box.innerHTML = appState.rewards.map(r => `
-        <div class="card" style="background:#FAF6F0;">
-          <div style="font-weight:800; font-size:14px;">${r.operator} ₹${r.amount} — ${r.phone}</div>
-          <div class="plan-meta">Order: <b>${r.orderId}</b> | UPI: <b>${r.upiId}</b> | Status: <b>${r.status}</b></div>
+        <div class="card" style="background:#FAF7F0; margin-bottom:8px;">
+          <div style="font-weight:800; font-size:13px;">${r.operator} ₹${r.amount} • ${r.phone} (${r.status})</div>
+          <div class="plan-meta">Order: <b>${r.orderId}</b> | UPI: <b>${r.upiId}</b></div>
           <div style="display:flex; gap:8px; margin-top:8px;">
-            <input type="number" id="adm_cb_${r.id}" value="${r.cashback || ''}" placeholder="Cashback ₹" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid var(--border); font-weight:800;" />
-            <button class="btn-renew" onclick="approveClaimAdmin('${r.id}')">Approve ✓</button>
+            <input type="number" id="adm_cb_${r.id}" placeholder="Cashback ₹" value="${r.cashback || ''}" style="padding:8px; border-radius:8px; border:1px solid var(--border); width:110px;" />
+            <button class="btn-renew" onclick="approveClaimAdmin('${r.id}')">Approve & Credit</button>
           </div>
         </div>`).join('');
     }
 
     function approveClaimAdmin(id) {
       const val = parseFloat(document.getElementById('adm_cb_' + id).value);
-      if (isNaN(val) || val < 0) return showToast('Enter valid cashback ₹');
+      if (isNaN(val) || val < 0) return showToast('Enter valid ₹ cashback');
       const item = appState.rewards.find(r => r.id === id);
       if (!item) return;
       item.cashback = val;
       item.status = 'Approved';
       saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve', id, cashback: val })
+      }).catch(() => {});
       renderAdminClaims();
       renderRewards();
       showToast(`Approved ₹${val} cashback!`);
-    }
+      }   
 
     function addCredit() {
       const person = document.getElementById('creditPerson').value.trim();
@@ -895,6 +941,7 @@
     }
 
     renderAll();
+    syncRewardsFromCloud();
     if (!appState.user) openRegisterModal(false);
   </script>
 </body>
