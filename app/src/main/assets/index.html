@@ -474,7 +474,8 @@
       if (raw === 'PERMISSION_DENIED') return showToast('Allow SMS permission & tap Auto-Detect again');
 
       try {
-        const smsList = JSON.parse(raw);
+       const cleanedRaw = typeof raw === 'string' ? raw.replace(/[\u0000-\u001F]+/g, ' ') : '[]';
+        const smsList = JSON.parse(cleanedRaw);
         const now = Date.now();
         const userPhone = appState.user.phone;
         const userOp = appState.user.operator.toUpperCase();
@@ -572,6 +573,7 @@
     function renderRechargeCatalog() {
       const grid = document.getElementById('rechargeCatalogGrid');
       const items = RECHARGE_DEALS.filter(d => appState.catalogFilter === 'All' || d.cat === appState.catalogFilter);
+      if (!items.length) items = RECHARGE_DEALS;
       grid.innerHTML = items.map(d => `
         <div class="card">
           <div class="card-row">
