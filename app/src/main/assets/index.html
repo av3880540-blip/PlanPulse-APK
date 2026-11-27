@@ -135,19 +135,19 @@
       <div id="plansList"></div>
     </section>
 
-    <!-- TAB 2: CREDITS -->
+    <!-- TAB 2: RECHARGE HISTORY -->
     <section id="tab-history" style="display:none;">
-  <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <div style="font-size:12px; color:var(--muted); font-weight:700;">APP RECHARGE SPEND</div>
-      <div style="font-size:24px; font-weight:800; color:var(--forest);" id="historyTotalBig">₹0</div>
-    </div>
-    <button class="btn-pill btn-scan" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">+ New Recharge</button>
-  </div>
-  <div id="historyList"></div>
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; color:var(--muted); font-weight:700;">APP RECHARGE SPEND</div>
+          <div style="font-size:24px; font-weight:800; color:var(--forest);" id="historyTotalBig">₹0</div>
+        </div>
+        <button class="btn-pill btn-scan" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">+ New Recharge</button>
+      </div>
+      <div id="historyList"></div>
     </section>
 
-    <!-- TAB 3: FREECHARGE-STYLE RECHARGE & CHECK REWARDS -->
+    <!-- TAB 3: RECHARGE & CHECK REWARDS -->
     <section id="tab-recharge" style="display:none;">
       <div class="seg-bar">
         <button class="seg-btn active" id="segPlansBtn" onclick="switchRechargeSubTab('plans')">⚡ Browse Plans</button>
@@ -186,7 +186,7 @@
             <div>
               <div class="hero-label">Verified Cashback Earned</div>
               <div class="hero-amount" id="rewardsApprovedTotal">₹0</div>
-              <div class="hero-sub" id="rewardsPendingSub">₹0 pending merchant confirmation</div>
+              <div class="hero-sub" id="rewardsPendingSub">0 claim(s) awaiting confirmation</div>
             </div>
             <div class="hero-btns">
               <button class="btn-add" onclick="openClaimModal()">+ Claim Order</button>
@@ -240,7 +240,7 @@
     </div>
   </div>
 
-    <div class="overlay" id="checkoutModal">
+  <div class="overlay" id="checkoutModal">
     <div class="modal">
       <h2 id="coTitle">Jio ₹349 Recharge</h2>
       <p id="coSubtitle">Number copied! Choose an app you already use to complete payment, then log your Order ID for cashback.</p>
@@ -255,7 +255,7 @@
       <button class="btn-secondary" style="color:var(--forest); border-color:var(--forest); margin-top:12px;" onclick="switchToClaimFromCheckout()">2. Already Paid? Log Order for Cashback ✓</button>
       <button class="btn-secondary" onclick="closeModal('checkoutModal')">Close</button>
     </div>
-    </div>
+  </div>
   
   <div class="overlay" id="claimModal">
     <div class="modal">
@@ -296,17 +296,6 @@
     </div>
   </div>
 
-  <div class="overlay" id="addCreditModal">
-    <div class="modal">
-      <h2>Log Money Owed to You</h2>
-      <div class="field"><label>Person's Name</label><input type="text" id="creditPerson" placeholder="e.g. Rahul" /></div>
-      <div class="field"><label>Amount (₹)</label><input type="number" id="creditAmount" placeholder="500" /></div>
-      <div class="field"><label>Reason</label><input type="text" id="creditReason" placeholder="e.g. Shared Wi-Fi / Recharge" /></div>
-      <button class="btn-full" onclick="addCredit()">Save Receivable</button>
-      <button class="btn-secondary" onclick="closeModal('addCreditModal')">Cancel</button>
-    </div>
-  </div>
-
   <div class="overlay" id="vaultModal">
     <div class="modal">
       <h2>🔒 Privacy Vault</h2>
@@ -328,10 +317,19 @@
   </div>
 
   <div class="toast" id="toast"></div>
-    <script>
+  <script>
     const STORAGE_KEY = 'planpulse_prod_v2';
     const ADMIN_PIN = '9999';
     const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbynln2eJ6TJBxb2uor0mkVs5MdjM9VDm55ORioJIBXPGkL0IVXqlmtzUcxKJj1ATGVw/exec';
+
+    const PARTNER_RECHARGE_URLS = {
+      paytm: 'https://paytm.com/recharge',
+      amazon: 'https://www.amazon.in/hfc/mobileRecharge',
+      Jio: 'https://www.jio.com/selfcare/recharge/mobility/',
+      Airtel: 'https://www.airtel.in/recharge-online',
+      Vi: 'https://www.myvi.in/prepaid/online-mobile-recharge',
+      BSNL: 'https://portal2.bsnl.in/myportal/quickrecharge.do'
+    };
 
     const RECHARGE_CATALOG = {
       Jio: [
@@ -452,10 +450,7 @@
       }
       const raw = window.AndroidAdBridge.scanRealRechargeSms();
       if (raw === 'PERMISSION_DENIED') return showToast('Allow SMS permission & tap Auto-Detect again');
-
-            if (!raw || raw.startsWith('ERROR')) {
-        return showToast('SMS Bridge: ' + (raw || 'Empty response'));
-      }
+      if (!raw || raw.startsWith('ERROR')) return showToast('SMS Bridge: ' + (raw || 'Empty response'));
 
       try {
         const cleanedRaw = raw.replace(/[\x00-\x1F\x7F]/g, ' ');
@@ -470,7 +465,7 @@
           const senderUpper = (item.sender || '').toUpperCase();
 
           if (/(offer|avail|win|click|http|expired|expires|exhausted|data used|alert|reminder|due)/i.test(text)) return;
-          if (!/(successful|activated|credited|thank you for recharging|recharge of)/i.test(text)) return;
+          if (!/(successful|activated|credited|thank you for recharging|recharge of|recharged|plan of)/i.test(text)) return;
 
           const phoneMatch = text.match(/(?:\+91[\-\s]?)?([6-9]\d{9})/);
           if (phoneMatch && phoneMatch[1] !== userPhone) return;
@@ -504,9 +499,10 @@
         saveState();
         renderAll();
         showToast(added > 0 ? `Found ${added} active plan(s) on ${userPhone}` : `No active plans found on ${userPhone}`);
-      } catch (e) { showToast('SMS Error: ' + e.message'); }
+      } catch (e) { showToast('SMS Error: ' + e.message); }
     }
-          function addManualPlan() {
+
+    function addManualPlan() {
       const name = document.getElementById('planName').value.trim();
       const category = document.getElementById('planCategory').value;
       const amount = parseFloat(document.getElementById('planAmount').value);
@@ -535,73 +531,6 @@
       renderAll();
       showToast('Plan removed');
     }
-
-      function switchRechargeSubTab(sub) {
-      document.getElementById('recharge-sub-plans').style.display = (sub === 'plans') ? 'block' : 'none';
-      document.getElementById('recharge-sub-rewards').style.display = (sub === 'rewards') ? 'block' : 'none';
-      document.getElementById('segPlansBtn').classList.toggle('active', sub === 'plans');
-      document.getElementById('segRewardsBtn').classList.toggle('active', sub === 'rewards');
-      if (sub === 'rewards') {
-        renderRewards();
-        syncRewardsFromCloud();
-      }
-    }
-
-    function setCatalogFilter(cat, btn) {
-      appState.catalogFilter = cat;
-      btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      renderRechargeCatalog();
-    }
-
-    function renderRechargeCatalog() {
-      const grid = document.getElementById('rechargeCatalogGrid');
-      let items = RECHARGE_DEALS.filter(d => appState.catalogFilter === 'All' || d.cat === appState.catalogFilter);
-      if (!items.length) items = RECHARGE_DEALS;
-      grid.innerHTML = items.map(d => `
-        <div class="card">
-          <div class="card-row">
-            <div>
-              <span class="badge">${d.op} • ${d.cat}</span>
-              <span class="badge badge-ok" style="margin-left:4px;">${d.cashback}</span>
-              <div class="plan-title" style="margin-top:6px;">${d.title}</div>
-              <div class="plan-meta">${d.desc}</div>
-            </div>
-            <div style="text-align:right;">
-              <div class="plan-price">₹${d.price}</div>
-              <button class="btn-renew" style="margin-top:8px;" onclick="openPartnerPicker('${d.op}', ${d.price}, '${d.title.replace(/'/g, "\\'")}')">Recharge →</button>
-            </div>
-          </div>
-        </div>`).join('');
-    }
-
-    function openPartnerPicker(op, price, title) {
-      pendingDeal = { op, price, title };
-      document.getElementById('partnerDealTitle').textContent = `${op} ₹${price} • ${title}`;
-      const list = document.getElementById('partnerButtonsList');
-      list.innerHTML = RECHARGE_PARTNERS.map(p => `
-        <div class="card" style="padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-weight:800; font-size:14px;">${p.name}</div>
-            <div style="font-size:11px; color:var(--forest); font-weight:700;">${p.tag}</div>
-          </div>
-          <button class="btn-pill btn-scan" onclick="launchPartner('${p.url}')">Open & Pay</button>
-        </div>`).join('');
-      openModal('partnerModal');
-    }
-
-    function launchPartner(url) {
-      closeModal('partnerModal');
-      if (window.AndroidAdBridge && window.AndroidAdBridge.openExternalUrl) {
-        window.AndroidAdBridge.openExternalUrl(url);
-    const PARTNER_RECHARGE_URLS = {
-      paytm: 'https://paytm.com/recharge',
-      amazon: 'https://www.amazon.in/hfc/mobileRecharge',
-      Jio: 'https://www.jio.com/selfcare/recharge/mobility/',
-      Airtel: 'https://www.airtel.in/recharge-online',
-      Vi: 'https://www.myvi.in/prepaid/online-mobile-recharge',
-      BSNL: 'https://portal2.bsnl.in/myportal/quickrecharge.do'
-    };
 
     function switchRechargeSubTab(sub) {
       document.getElementById('recharge-sub-plans').style.display = (sub === 'plans') ? 'block' : 'none';
@@ -730,51 +659,6 @@
       switchRechargeSubTab('rewards');
       renderAll();
       showToast('Claim submitted! Status: Pending');
-    }   
-
-    function submitRewardClaim() {
-      const phone = document.getElementById('claimPhone').value.replace(/\D/g, '').slice(-10);
-      const amount = parseFloat(document.getElementById('claimAmount').value);
-      const orderId = document.getElementById('claimOrderId').value.trim();
-      const upiId = document.getElementById('claimUpiId').value.trim();
-      const operator = document.getElementById('claimOperator').value;
-
-      if (phone.length !== 10) return showToast('Enter 10-digit recharged mobile number');
-      if (!amount || amount <= 0) return showToast('Enter valid recharge amount');
-      if (!orderId) return showToast('Enter your Transaction / Order ID');
-      if (!upiId || !upiId.includes('@')) return showToast('Enter valid UPI ID for cashback');
-
-      const newClaim = {
-        id: 'CLM' + Date.now().toString().slice(-6),
-        phone,
-        operator,
-        amount,
-        orderId,
-        upiId,
-        status: 'Pending',
-        cashback: 0,
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-      };
-
-      appState.rewards.unshift(newClaim);
-      appState.history.unshift({
-        id: 'hist_' + Date.now(),
-        title: `${operator} ₹${amount} (${phone})`,
-        amount,
-        orderId,
-        date: newClaim.date,
-        source: 'PlanPulse Store'
-      });
-
-      saveState();
-      fetch(SHEETS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'create', claim: newClaim })
-      }).catch(() => {});
-
-      closeModal('claimModal');
-      switchRechargeSubTab('rewards');
-      showToast('Claim submitted! Status: Pending');
     }
 
     async function syncRewardsFromCloud() {
@@ -830,13 +714,13 @@
       }).join('');
     }
 
-       function openAdminModal() {
+    function openAdminModal() {
       document.getElementById('adminPinInput').value = '';
       document.getElementById('adminLockBox').style.display = 'block';
       document.getElementById('adminContentBox').style.display = 'none';
       openModal('adminModal');
-            }
-        
+    }
+
     function unlockAdminPanel() {
       if (document.getElementById('adminPinInput').value !== ADMIN_PIN) return showToast('Wrong Admin PIN');
       document.getElementById('adminLockBox').style.display = 'none';
@@ -874,29 +758,6 @@
       renderAdminClaims();
       renderRewards();
       showToast(`Approved ₹${val} cashback!`);
-      }   
-
-    function addCredit() {
-      const person = document.getElementById('creditPerson').value.trim();
-      const amount = parseFloat(document.getElementById('creditAmount').value);
-      const reason = document.getElementById('creditReason').value.trim() || 'Shared Expense';
-      if (!person || !amount || amount <= 0) return showToast('Enter name and amount');
-
-      appState.credits.unshift({ id: 'c_' + Date.now(), person, amount, reason });
-      document.getElementById('creditPerson').value = '';
-      document.getElementById('creditAmount').value = '';
-      document.getElementById('creditReason').value = '';
-      saveState();
-      closeModal('addCreditModal');
-      renderAll();
-      showToast('Receivable logged!');
-    }
-
-    function settleCredit(id) {
-      appState.credits = appState.credits.filter(c => c.id !== id);
-      saveState();
-      renderAll();
-      showToast('Marked as settled!');
     }
 
     function setFilter(filter, btn) {
@@ -913,6 +774,7 @@
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       if (btn) btn.classList.add('active');
       if (tab === 'recharge') renderRechargeCatalog();
+      if (tab === 'history') renderHistory();
     }
 
     function openVaultModal() {
@@ -1001,24 +863,25 @@
           </div>`;
       }).join('');
     }
-  function renderHistory() {
-    const list = document.getElementById('historyList');
-    const total = appState.history.reduce((s, h) => s + (parseFloat(h.amount) || 0), 0);
-    document.getElementById('historyTotalBig').textContent = mask('₹' + total);
-    if (!appState.history.length) {
-      list.innerHTML = `<div class="empty-box"><h3>No App Recharges Yet</h3><p>Only recharges completed through PlanPulse's Recharge tab are recorded here.</p></div>`;
-      return;
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      const total = appState.history.reduce((s, h) => s + (parseFloat(h.amount) || 0), 0);
+      document.getElementById('historyTotalBig').textContent = mask('₹' + total);
+      if (!appState.history.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No App Recharges Yet</h3><p>Only recharges completed through PlanPulse's Recharge tab are recorded here.</p></div>`;
+        return;
+      }
+      list.innerHTML = appState.history.map(h => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="badge">${h.source}</span>
+            <div style="font-weight:800; font-size:15px; margin-top:5px;">${h.title}</div>
+            <div style="font-size:12px; color:var(--muted);">Order: ${h.orderId || 'N/A'} • ${h.date}</div>
+          </div>
+          <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + h.amount)}</span>
+        </div>`).join('');
     }
-    list.innerHTML = appState.history.map(h => `
-      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <span class="badge">${h.source}</span>
-          <div style="font-weight:800; font-size:15px; margin-top:5px;">${h.title}</div>
-          <div style="font-size:12px; color:var(--muted);">Order: ${h.orderId || 'N/A'} • ${h.date}</div>
-        </div>
-        <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + h.amount)}</span>
-      </div>`).join('');
-                                          }
 
     function renderAll() {
       if (appState.user) {
@@ -1038,7 +901,7 @@
       const monthlyBurn = appState.plans.reduce((sum, p) => sum + Math.round((p.amount / (p.totalDays || 28)) * 30), 0);
       const dailyBurn = (monthlyBurn / 30).toFixed(1);
       const expiringCount = appState.plans.filter(p => p.daysLeft <= 5).length;
-      
+
       document.getElementById('burnRate').textContent = mask('₹' + monthlyBurn);
       document.getElementById('burnSub').textContent = `≈ ₹${appState.vaultLocked ? '••' : dailyBurn}/day across ${appState.plans.length} active plan(s)`;
       document.getElementById('statActive').textContent = appState.plans.length;
@@ -1046,7 +909,7 @@
       document.getElementById('statHistoryCount').textContent = appState.history.length;
 
       renderPlans();
-      renderhistory();
+      renderHistory();
       renderRechargeCatalog();
       renderRewards();
     }
