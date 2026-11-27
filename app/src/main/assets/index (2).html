@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PlanPulse</title>
+  <style>
+    :root {
+      --bg: #FAF6F0;
+      --card: #FFFFFF;
+      --surface: #EFE7DC;
+      --forest: #1B4332;
+      --forest-light: #2D6A4F;
+      --espresso: #2C1E16;
+      --muted: #7A6B63;
+      --border: #E8DFD3;
+      --gold: #D97706;
+      --gold-bg: #FEF3C7;
+      --danger: #DC2626;
+      --danger-bg: #FEE2E2;
+      --ok-bg: #DCFCE7;
+      --ok-text: #166534;
+    }
+    body.theme-dark {
+      --bg: #111815;
+      --card: #1A2420;
+      --surface: #23302B;
+      --forest: #34D399;
+      --forest-light: #10B981;
+      --espresso: #F3EFEA;
+      --muted: #9CA3AF;
+      --border: #2D3D36;
+      --gold: #FBBF24;
+      --gold-bg: #3B2F14;
+      --danger: #F87171;
+      --danger-bg: #3F1D1D;
+      --ok-bg: #143829;
+      --ok-text: #6EE7B7;
+    }
+    body.theme-espresso {
+      --bg: #F5EFE6;
+      --card: #FFFDF9;
+      --surface: #E6D8C5;
+      --forest: #4A2E1B;
+      --forest-light: #6B442A;
+      --espresso: #24150B;
+      --muted: #6E5849;
+      --border: #D9C8B4;
+      --gold: #B45309;
+      --gold-bg: #FDE68A;
+      --danger: #B91C1C;
+      --danger-bg: #FEE2E2;
+      --ok-bg: #DCFCE7;
+      --ok-text: #166534;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--espresso); padding-bottom: 84px; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg); position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border); gap: 8px; }
+    .profile-trigger { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 5px 11px 5px 6px; border-radius: 99px; cursor: pointer; max-width: 52%; }
+    .avatar-circle { width: 28px; height: 28px; border-radius: 50%; background: var(--forest); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+    .profile-trigger-text { font-size: 11px; font-weight: 800; color: var(--espresso); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .top-actions { display: flex; align-items: center; gap: 6px; }
+    .btn-pill { border: none; border-radius: 99px; padding: 7px 11px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-pro { background: var(--gold-bg); color: var(--gold); }
+    .btn-scan { background: var(--forest); color: var(--bg); }
+    body.theme-dark .btn-scan, body.theme-dark .btn-renew, body.theme-dark .btn-full { color: #0E1713; }
+    .btn-lock { background: var(--card); border: 1px solid var(--border); width: 33px; height: 33px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--espresso); }
+    .container { padding: 14px 16px; max-width: 540px; margin: 0 auto; }
+    .hero { background: linear-gradient(145deg, #1B4332, #122E22); color: #fff; border-radius: 22px; padding: 18px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(27,67,50,0.16); }
+    body.theme-espresso .hero { background: linear-gradient(145deg, #4A2E1B, #2C1A0E); }
+    .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .hero-label { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.8; font-weight: 700; }
+    .hero-amount { font-size: 32px; font-weight: 800; margin: 4px 0; }
+    .hero-sub { font-size: 12px; opacity: 0.85; }
+    .hero-btns { display: flex; flex-direction: column; gap: 7px; }
+    .btn-add { background: #fff; color: #1B4332; border: none; border-radius: 12px; padding: 9px 13px; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .btn-csv { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.22); border-radius: 12px; padding: 7px 12px; font-weight: 600; font-size: 11px; cursor: pointer; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+    .stat-box { background: rgba(255,255,255,0.1); border-radius: 14px; padding: 10px 8px; text-align: center; }
+    .stat-title { font-size: 11px; opacity: 0.85; line-height: 1.25; }
+    .stat-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
+    .seg-bar { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 14px; border: 1px solid var(--border); gap: 3px; overflow-x: auto; }
+    .seg-btn { flex: 1; border: none; background: transparent; padding: 9px 6px; border-radius: 11px; font-size: 11px; font-weight: 800; color: var(--muted); cursor: pointer; white-space: nowrap; }
+    .seg-btn.active { background: var(--card); color: var(--forest); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .fc-number-box { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
+    .fc-row { display: flex; gap: 8px; align-items: center; }
+    .fc-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 800; background: var(--bg); color: var(--espresso); }
+    .fc-select { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; font-weight: 800; background: var(--surface); color: var(--forest); }
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+    .filters::-webkit-scrollbar { display: none; }
+    .chip { background: var(--card); border: 1px solid var(--border); color: var(--espresso); padding: 8px 14px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .chip.active { background: var(--espresso); color: var(--bg); border-color: var(--espresso); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+    .card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: var(--surface); color: var(--espresso); }
+    .badge-warn { background: var(--gold-bg); color: var(--gold); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-ok { background: var(--ok-bg); color: var(--ok-text); }
+    .plan-title { font-size: 16px; font-weight: 800; margin-top: 6px; }
+    .plan-meta { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .plan-price { font-size: 19px; font-weight: 800; text-align: right; color: var(--espresso); }
+    .fc-specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); border-radius: 12px; padding: 9px; margin: 10px 0; text-align: center; }
+    .fc-spec-lbl { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .fc-spec-val { font-size: 13px; font-weight: 800; color: var(--espresso); margin-top: 2px; }
+    .progress-bg { height: 6px; background: var(--surface); border-radius: 99px; overflow: hidden; margin: 12px 0; }
+    .progress-fill { height: 100%; background: var(--forest); border-radius: 99px; }
+    .card-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-renew { flex: 1; background: var(--forest); color: #fff; border: none; border-radius: 11px; padding: 10px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-del { background: var(--bg); color: var(--danger); border: 1px solid var(--border); border-radius: 11px; padding: 9px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .empty-box { text-align: center; background: var(--card); border: 1px dashed var(--border); border-radius: 18px; padding: 26px 18px; margin-top: 8px; }
+    .empty-box h3 { font-size: 16px; margin-bottom: 6px; }
+    .empty-box p { font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 14px; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 4px; z-index: 25; }
+    .nav-item { flex: 1; border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px; border-radius: 12px; cursor: pointer; }
+    .nav-item.active { color: var(--forest); background: var(--surface); }
+    .overlay { position: fixed; inset: 0; background: rgba(15,12,10,0.72); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; width: 100%; max-width: 410px; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal h2 { font-size: 19px; margin-bottom: 6px; color: var(--espresso); }
+    .modal p { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--espresso); }
+    .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: var(--bg); color: var(--espresso); }
+    .btn-full { width: 100%; background: var(--forest); color: #fff; border: none; border-radius: 13px; padding: 13px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 4px; }
+    .btn-secondary { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 13px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .toast { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); background: var(--espresso); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-size: 12px; font-weight: 700; z-index: 99; display: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+
+    /* AUTH SCREEN (TWO-STEP SIGNUP / LOGIN) */
+    .auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+    .auth-box { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 24px 20px; width: 100%; max-width: 400px; box-shadow: 0 14px 36px rgba(0,0,0,0.08); }
+    .auth-logo { width: 48px; height: 48px; border-radius: 14px; background: var(--forest); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+    .auth-tabs { display: flex; background: var(--surface); border-radius: 12px; padding: 4px; margin: 14px 0; }
+    .auth-tab { flex: 1; border: none; background: transparent; padding: 9px; border-radius: 9px; font-weight: 800; font-size: 13px; color: var(--muted); cursor: pointer; }
+    .auth-tab.active { background: var(--card); color: var(--forest); }
+    .link-btn { background: none; border: none; color: var(--forest); font-size: 12px; font-weight: 800; cursor: pointer; text-decoration: underline; }
+
+    /* SIDE DRAWER */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 60; display: none; }
+    .drawer-backdrop.open { display: block; }
+    .side-drawer { position: fixed; top: 0; bottom: 0; left: -295px; width: 280px; background: var(--card); border-right: 1px solid var(--border); z-index: 65; transition: left 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; padding: 20px 16px; }
+    .side-drawer.open { left: 0; }
+    .drawer-header { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 12px; }
+    .drawer-item { width: 100%; background: transparent; border: none; color: var(--espresso); padding: 12px 10px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; }
+    .drawer-item:hover { background: var(--surface); }
+
+    /* PROMO BANNER POPUP */
+    .banner-modal { padding: 0; overflow: hidden; max-width: 370px; }
+    .banner-close-x { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.72); color: #fff; border: 2px solid #fff; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
+    .banner-img { width: 100%; max-height: 360px; object-fit: cover; display: block; }
+    .banner-body { padding: 14px 16px; }
+
+    /* STARS RATING */
+    .star-row { display: flex; justify-content: center; gap: 10px; font-size: 30px; margin: 12px 0; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <!-- AUTHENTICATION GATE (LOGIN / 2-STEP SIGNUP / FORGOT PASSWORD) -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-box">
+      <div class="auth-logo">⚡</div>
+      <h2 style="font-size:22px; font-weight:800;">PlanPulse</h2>
+      <p style="font-size:12px; color:var(--muted); margin-top:2px;">Smart Recharge Tracker, Green Coins & Cashback Wallet</p>
+
+      <div class="auth-tabs" id="authTabBar">
+        <button class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</button>
+        <button class="auth-tab" id="tabSignupBtn" onclick="switchAuthMode('signup')">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="auth-login">
+        <div class="field"><label>Mobile Number / Login ID</label><input type="text" id="loginId" placeholder="10-digit mobile number" /></div>
+        <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" /></div>
+        <div style="text-align:right; margin-bottom:12px;">
+          <button class="link-btn" onclick="switchAuthMode('forgot')">Forgot Password?</button>
+        </div>
+        <button class="btn-full" onclick="handleLogin()">Login to PlanPulse →</button>
+      </div>
+
+      <!-- TWO-STEP SIGNUP FORM -->
+      <div id="auth-signup" style="display:none;">
+        <div id="signup-step-1">
+          <div style="font-size:11px; font-weight:800; color:var(--forest); margin-bottom:8px;">STEP 1 OF 2 • ACCOUNT IDENTITY</div>
+          <div class="field"><label>Full Name</label><input type="text" id="suName" placeholder="e.g. Aman Vishwakarma" /></div>
+          <div class="field"><label>10-Digit Mobile Number (Permanent ID)</label><input type="tel" id="suPhone" maxlength="10" placeholder="e.g. 9876543210" /></div>
+          <div class="field"><label>Primary Telecom Operator</label>
+            <select id="suOp"><option value="Jio">Jio</option><option value="Airtel">Airtel</option><option value="Vi">Vi</option><option value="BSNL">BSNL</option></select>
+          </div>
+          <button class="btn-full" onclick="goSignupStep2()">Next: Set Security →</button>
+        </div>
+        <div id="signup-step-2" style="display:none;">
+          <div style="font-size:11px; font-weight:800; color:var(--forest); margin-bottom:8px;">STEP 2 OF 2 • PASSWORD & VAULT PIN</div>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Your phone number <b id="suPhonePreview"></b> will be permanently linked to this ID.</p>
+          <div class="field"><label>Create Login Password (min 4 chars)</label><input type="password" id="suPass" placeholder="Create password" /></div>
+          <div class="field"><label>Set 4-Digit Security / Recovery PIN</label><input type="password" id="suPin" maxlength="4" inputmode="numeric" placeholder="e.g. 2580" /></div>
+          <button class="btn-full" onclick="completeSignup()">Complete Registration ✓</button>
+          <button class="btn-secondary" onclick="backSignupStep1()">← Back</button>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <div id="auth-forgot" style="display:none;">
+        <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Reset Password via Vault PIN</div>
+        <div class="field"><label>Registered 10-Digit Mobile Number</label><input type="tel" id="fpPhone" maxlength="10" placeholder="10-digit mobile number" /></div>
+        <div class="field"><label>4-Digit Vault PIN</label><input type="password" id="fpPin" maxlength="4" inputmode="numeric" placeholder="••••" /></div>
+        <div class="field"><label>New Password</label><input type="password" id="fpNewPass" placeholder="Enter new password" /></div>
+        <button class="btn-full" onclick="handleResetPassword()">Reset Password & Login</button>
+        <button class="btn-secondary" onclick="switchAuthMode('login')">Back to Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEFT SIDEWARDS PROFILE DRAWER -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeSideDrawer()"></div>
+  <aside class="side-drawer" id="sideDrawer">
+    <div>
+      <div class="drawer-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="avatar-circle" style="width:42px; height:42px; font-size:18px;" id="drawerAvatar">A</div>
+          <div>
+            <div style="font-weight:800; font-size:15px;" id="drawerName">User</div>
+            <div style="font-size:12px; color:var(--muted);" id="drawerPhone">9876543210</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;">
+          <span class="badge badge-ok" id="drawerRoleBadge">FREE PLAN</span>
+          <span class="badge" style="margin-left:4px;" id="drawerWalletBadge">🌿 0 Coins</span>
+        </div>
+      </div>
+      <button class="drawer-item" onclick="closeSideDrawer(); openModal('supportModal');">🎧 Customer Support</button>
+      <button class="drawer-item" onclick="closeSideDrawer(); openModal('privacyModal');">🛡️ Privacy Policy</button>
+      <button class="drawer-item" onclick="closeSideDrawer(); openModal('ratingModal');">⭐ Give Rating</button>
+      <button class="drawer-item" onclick="closeSideDrawer(); openModal('themeModal');">🎨 Change Theme</button>
+    </div>
+    <div>
+      <button class="drawer-item" style="color:var(--danger);" onclick="logoutUser()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="profile-trigger" onclick="openSideDrawer()">
+      <div class="avatar-circle" id="topAvatar">⚡</div>
+      <div class="profile-trigger-text" id="userBadge">Profile</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn-pill btn-pro" id="proBtn" onclick="openModal('proModal')">★ Pro ₹49</button>
+      <button class="btn-pill btn-scan" id="scanBtn" onclick="runRealSmsScan()">🔔 Scan</button>
+      <button class="btn-lock" id="vaultBtn" onclick="openVaultModal()" title="Vault">🔒</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TAB 1: TRACKER -->
+    <section id="tab-tracker">
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">Monthly Burn Rate</div>
+            <div class="hero-amount" id="burnRate">₹0</div>
+            <div class="hero-sub" id="burnSub">≈ ₹0/day across 0 active plans</div>
+          </div>
+          <div class="hero-btns">
+            <button class="btn-add" onclick="openAddPlanModal()">+ Add Plan</button>
+            <button class="btn-csv" onclick="exportCSV()">Export CSV ↗</button>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-box"><div class="stat-title">Active<br>Plans</div><div class="stat-val" id="statActive">0</div></div>
+          <div class="stat-box"><div class="stat-title">Green<br>Coins (₹1)</div><div class="stat-val" style="color:#6EE7B7;" id="statWalletHero">🌿 0</div></div>
+          <div class="stat-box"><div class="stat-title">Expiring<br>≤5d</div><div class="stat-val" style="color:#FBBF24;" id="statExpiring">0</div></div>
+        </div>
+      </div>
+
+      <div id="proInsightsBanner" class="card" style="display:none; border-left:4px solid var(--forest);">
+        <div style="font-size:11px; font-weight:800; color:var(--forest); text-transform:uppercase;">★ Pro Smart Savings Insight</div>
+        <div style="font-size:12px; color:var(--espresso); margin-top:4px;" id="proInsightText">Switching from monthly ₹349 packs to 84-day ₹949 saves ₹108 every quarter + 2x Green Coin Cashback!</div>
+      </div>
+
+      <div class="filters">
+        <button class="chip active" onclick="setFilter('all', this)">All Plans</button>
+        <button class="chip" onclick="setFilter('telecom', this)">Mobile & Fiber</button>
+        <button class="chip" onclick="setFilter('ott', this)">OTT & Music</button>
+        <button class="chip" onclick="setFilter('expiring', this)">Expiring Soon</button>
+      </div>
+      <div id="plansList"></div>
+    </section>
+
+    <!-- TAB 2: RECHARGE HISTORY -->
+    <section id="tab-history" style="display:none;">
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; color:var(--muted); font-weight:700;">APP RECHARGE SPEND</div>
+          <div style="font-size:24px; font-weight:800; color:var(--forest);" id="historyTotalBig">₹0</div>
+        </div>
+        <button class="btn-pill btn-scan" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">+ New Recharge</button>
+      </div>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- TAB 3: RECHARGE, COIN RECHARGE, GREEN COINS WALLET & CLAIMS -->
+    <section id="tab-recharge" style="display:none;">
+      <div class="seg-bar">
+        <button class="seg-btn active" id="segPlansBtn" onclick="switchRechargeSubTab('plans')">⚡ Partner Plans</button>
+        <button class="seg-btn" id="segCoinRchBtn" onclick="switchRechargeSubTab('coin_recharge')">🌿 Coin Recharge</button>
+        <button class="seg-btn" id="segWalletBtn" onclick="switchRechargeSubTab('wallet')">👛 Green Coins</button>
+        <button class="seg-btn" id="segRewardsBtn" onclick="switchRechargeSubTab('rewards')">🎁 Claims</button>
+      </div>
+
+      <!-- SUB-TAB A: PARTNER BROWSE PLANS -->
+      <div id="recharge-sub-plans">
+        <div class="fc-number-box">
+          <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Recharging Mobile Number</div>
+          <div class="fc-row">
+            <input type="tel" id="fcPhoneInput" class="fc-input" maxlength="10" placeholder="10-digit number" />
+            <select id="fcOpSelect" class="fc-select" onchange="renderRechargeCatalog()">
+              <option value="Jio">Jio</option>
+              <option value="Airtel">Airtel</option>
+              <option value="Vi">Vi</option>
+              <option value="BSNL">BSNL</option>
+            </select>
+          </div>
+          <div style="font-size:11px; color:var(--forest); font-weight:700; margin-top:8px;">
+            💡 Recharge via partner checkout & earn <b>Green Coins (1 Coin = ₹1)</b> directly in your wallet!
+          </div>
+        </div>
+
+        <div class="filters">
+          <button class="chip active" onclick="setCatalogFilter('popular', this)">Popular 5G</button>
+          <button class="chip" onclick="setCatalogFilter('quarterly', this)">84 Days Value</button>
+          <button class="chip" onclick="setCatalogFilter('annual', this)">Annual (365d)</button>
+          <button class="chip" onclick="setCatalogFilter('addon', this)">Data & Voice</button>
+        </div>
+        <div id="rechargeCatalogList"></div>
+      </div>
+
+      <!-- SUB-TAB B: RECHARGE USING GREEN COINS (MANUAL ADMIN FULFILLMENT) -->
+      <div id="recharge-sub-coin-rch" style="display:none;">
+        <div class="card" style="background:linear-gradient(135deg, var(--surface), var(--card)); border-left:4px solid var(--forest);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:11px; font-weight:800; color:var(--forest); text-transform:uppercase;">🌿 Instant Green Coin Recharge</div>
+              <div style="font-size:12px; color:var(--muted); margin-top:3px;">Select any plan below and pay using your <b>Green Coins (1 Coin = ₹1)</b>. Admin fulfills your recharge directly!</div>
+            </div>
+            <div style="text-align:right; flex-shrink:0;">
+              <div style="font-size:16px; font-weight:800; color:var(--forest);" id="coinRchBalBadge">🌿 0</div>
+              <button class="link-btn" style="font-size:11px;" onclick="openTopupCoinsModal()">+ Top Up</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="fc-number-box">
+          <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Target Number & Operator</div>
+          <div class="fc-row">
+            <input type="tel" id="crPhoneInput" class="fc-input" maxlength="10" placeholder="10-digit number" />
+            <select id="crOpSelect" class="fc-select" onchange="renderCoinRechargeCatalog()">
+              <option value="Jio">Jio</option>
+              <option value="Airtel">Airtel</option>
+              <option value="Vi">Vi</option>
+              <option value="BSNL">BSNL</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters">
+          <button class="chip active" onclick="setCoinCatFilter('popular', this)">Popular 5G</button>
+          <button class="chip" onclick="setCoinCatFilter('quarterly', this)">84 Days Value</button>
+          <button class="chip" onclick="setCoinCatFilter('annual', this)">Annual (365d)</button>
+          <button class="chip" onclick="setCoinCatFilter('addon', this)">Data & Voice</button>
+        </div>
+
+        <div id="coinRechargeCatalogList"></div>
+
+        <div class="card" style="margin-top:14px;">
+          <h3 style="font-size:15px; margin-bottom:8px;">📋 My Green Coin Recharge Orders</h3>
+          <div id="userCoinOrdersList"></div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB C: GREEN COINS WALLET, TOP-UP & COUPONS -->
+      <div id="recharge-sub-wallet" style="display:none;">
+        <div class="hero" style="margin-bottom:14px;">
+          <div class="hero-top">
+            <div>
+              <div class="hero-label">Green Coins Balance (1 Coin = ₹1)</div>
+              <div class="hero-amount" id="walletBalanceBig">🌿 0 Coins</div>
+              <div class="hero-sub">Use Coins in "Coin Recharge" or withdraw to UPI / Bank (Min 50 Coins)</div>
+            </div>
+            <div class="hero-btns">
+              <button class="btn-add" onclick="openTopupCoinsModal()">+ Top Up Coins</button>
+              <button class="btn-csv" onclick="openWithdrawModal()">Withdraw ↗</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px; margin-bottom:6px;">🎟️ Coin Discount & Bonus Coupons</h3>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Apply promo codes when topping up Green Coins or claiming partner recharges!</p>
+          <div id="userCouponsList"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px; margin-bottom:8px;">🪙 Green Coin Top-Up Requests</h3>
+          <div id="userCoinTopupsList"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px; margin-bottom:8px;">💸 Withdrawal Requests</h3>
+          <div id="userWithdrawalsList"></div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB D: PARTNER CASHBACK CLAIMS -->
+      <div id="recharge-sub-rewards" style="display:none;">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:12px; color:var(--muted); font-weight:700;">PARTNER CASHBACK CLAIMS</div>
+            <div style="font-size:13px; font-weight:800; color:var(--forest);" id="rewardsPendingSub">0 pending claim(s)</div>
+          </div>
+          <button class="btn-pill btn-scan" onclick="openClaimModal()">+ Claim Order</button>
+        </div>
+        <div id="rewardsList"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ACCOUNT (OR ADMIN PANEL WHEN LOGGED IN AS ADMIN) -->
+    <section id="tab-profile" style="display:none;">
+      <div id="regularProfileView">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:16px;">Account Identity</h3>
+            <span class="badge badge-ok" id="accProStatusBadge">STANDARD</span>
+          </div>
+          <p style="font-size:12px; color:var(--muted); margin:6px 0 12px;" id="profileSummary">Registered User</p>
+          <div style="font-size:11px; color:var(--muted); background:var(--bg); padding:9px 11px; border-radius:10px; margin-bottom:12px;">
+            🔒 Your registered phone number is permanently locked to this ID for security.
+          </div>
+          <button class="btn-full" onclick="openEditProfileModal()">Update Name / Operator / PIN</button>
+        </div>
+        <div class="card" id="upgradeCardProfile">
+          <h3 style="font-size:16px; margin-bottom:6px;">★ PlanPulse Pro Membership</h3>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">2x Green Coin Cashback, Unlimited Plans, Priority Recharges & Withdrawals, Smart Insights & Ad-Free.</p>
+          <button class="btn-renew" style="width:100%;" onclick="openModal('proModal')">Upgrade to Pro (₹49)</button>
+        </div>
+      </div>
+
+      <!-- DEDICATED ADMIN DASHBOARD (ONLY RENDERED FOR ADMIN ROLE) -->
+      <div id="adminDashboardView" style="display:none;">
+        <div class="hero" style="margin-bottom:14px;">
+          <div class="hero-top">
+            <div>
+              <div class="hero-label">🛡️ Administrator Control Center</div>
+              <div class="hero-amount" style="font-size:24px;">Admin Mode Active</div>
+              <div class="hero-sub">Fulfill Coin Recharges, Verify Top-Ups, Claims, Pro UTRs & Withdrawals</div>
+            </div>
+            <button class="btn-add" onclick="syncAllCloudData()">Sync ↻</button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <button class="chip active" onclick="switchAdminSubTab('coin_orders', this)">Coin Recharges</button>
+          <button class="chip" onclick="switchAdminSubTab('coin_topups', this)">Coin Top-Ups</button>
+          <button class="chip" onclick="switchAdminSubTab('claims', this)">Claims</button>
+          <button class="chip" onclick="switchAdminSubTab('pro', this)">Pro UTRs</button>
+          <button class="chip" onclick="switchAdminSubTab('withdrawals', this)">Withdrawals</button>
+          <button class="chip" onclick="switchAdminSubTab('banners', this)">Banners & Coupons</button>
+          <button class="chip" onclick="switchAdminSubTab('users', this)">Users</button>
+        </div>
+
+        <div id="admin-sub-coin_orders"></div>
+        <div id="admin-sub-coin_topups" style="display:none;"></div>
+        <div id="admin-sub-claims" style="display:none;"></div>
+        <div id="admin-sub-pro" style="display:none;"></div>
+        <div id="admin-sub-withdrawals" style="display:none;"></div>
+        <div id="admin-sub-banners" style="display:none;">
+          <div class="card">
+            <h3 style="font-size:15px; margin-bottom:6px;">🖼️ Upload Login Popup Banner</h3>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Shown automatically when users log in. Users can close with ❌.</p>
+            <div class="field"><label>Banner Title</label><input type="text" id="admBannerTitle" placeholder="e.g. Get 10% OFF on Green Coin Top-Up with PULSE10!" /></div>
+            <div class="field"><label>Choose Image from Gallery (or paste URL below)</label><input type="file" id="admBannerFile" accept="image/*" onchange="handleBannerFileSelect(event)" /></div>
+            <div class="field"><label>Image URL</label><input type="text" id="admBannerUrl" placeholder="https://..." /></div>
+            <button class="btn-full" onclick="saveAdminBanner()">Publish Active Banner</button>
+            <div id="adminBannersList" style="margin-top:12px;"></div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:15px; margin-bottom:6px;">🎟️ Create Promo Coupon (Coin Discount & Bonus)</h3>
+            <div class="field"><label>Coupon Code</label><input type="text" id="admCouponCode" placeholder="e.g. GREEN15" style="text-transform:uppercase;" /></div>
+            <div class="field"><label>Discount / Bonus Value (₹ / Coins)</label><input type="number" id="admCouponAmt" placeholder="e.g. 15" /></div>
+            <div class="field"><label>Min Order / Top-Up Amount (₹)</label><input type="number" id="admCouponMin" value="199" /></div>
+            <button class="btn-full" onclick="saveAdminCoupon()">Add Coupon Code</button>
+            <div id="adminCouponsList" style="margin-top:12px;"></div>
+          </div>
+        </div>
+        <div id="admin-sub-users" style="display:none;"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('tracker', this)">🏠<span>Tracker</span></button>
+    <button class="nav-item" onclick="switchTab('history', this)">📜<span>History</span></button>
+    <button class="nav-item" onclick="switchTab('recharge', this)">⚡<span>Recharge</span></button>
+    <button class="nav-item" id="navAccountBtn" onclick="switchTab('profile', this)">👤<span id="navAccountLabel">Account</span></button>
+  </nav>
+
+  <!-- TOP UP GREEN COINS MODAL (1 COIN = ₹1 + PROMO CODE DISCOUNT) -->
+  <div class="overlay" id="topupCoinsModal">
+    <div class="modal">
+      <h2>🌿 Top Up Green Coins</h2>
+      <p><b>1 Green Coin = ₹1</b>. Use Green Coins in the <b>Coin Recharge</b> section for instant recharge requests.</p>
+      <div class="field">
+        <label>Number of Green Coins to Buy (Min 20)</label>
+        <input type="number" id="tuCoinsInput" value="349" oninput="recalcTopupPayable()" />
+      </div>
+      <div class="field">
+        <label>Apply Promo Code for Instant Discount</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="tuCouponInput" placeholder="e.g. PULSE10" style="text-transform:uppercase;" />
+          <button class="btn-renew" style="flex:0 0 90px;" onclick="applyTopupCoupon()">Apply</button>
+        </div>
+        <div id="tuCouponMsg" style="font-size:11px; color:var(--forest); font-weight:700; margin-top:4px;"></div>
+      </div>
+      <div class="fc-specs" style="margin-bottom:12px;">
+        <div><div class="fc-spec-lbl">Coins</div><div class="fc-spec-val" id="tuSummaryCoins">🌿 349</div></div>
+        <div><div class="fc-spec-lbl">Discount</div><div class="fc-spec-val" style="color:var(--forest);" id="tuSummaryDisc">-₹0</div></div>
+        <div><div class="fc-spec-lbl">Payable</div><div class="fc-spec-val" id="tuSummaryPay">₹349</div></div>
+      </div>
+      <button class="btn-full" onclick="payForGreenCoinsUpi()">1. Pay Payable Amount via UPI ↗</button>
+      <div style="border-top:1px solid var(--border); margin:12px 0; padding-top:10px;">
+        <div class="field"><label>2. Enter 12-Digit UPI UTR to Credit Coins</label><input type="tel" id="tuUtrInput" maxlength="12" placeholder="12-digit UPI Ref / UTR No." /></div>
+        <button class="btn-full" style="background:var(--espresso);" onclick="submitCoinTopup()">Submit UTR for Green Coins ✓</button>
+      </div>
+      <button class="btn-secondary" onclick="closeModal('topupCoinsModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM GREEN COIN RECHARGE ORDER MODAL -->
+  <div class="overlay" id="coinOrderConfirmModal">
+    <div class="modal">
+      <h2>🌿 Confirm Green Coin Recharge</h2>
+      <p>Your coins will be reserved and your recharge order will be sent to Admin for immediate fulfillment.</p>
+      <div class="fc-specs" style="margin-bottom:12px;">
+        <div><div class="fc-spec-lbl">Number</div><div class="fc-spec-val" id="coCoinPhone">9876543210</div></div>
+        <div><div class="fc-spec-lbl">Operator</div><div class="fc-spec-val" id="coCoinOp">Jio</div></div>
+        <div><div class="fc-spec-lbl">Cost</div><div class="fc-spec-val" style="color:var(--forest);" id="coCoinCost">🌿 349</div></div>
+      </div>
+      <div class="card" style="background:var(--bg); padding:11px; margin-bottom:12px;">
+        <div style="font-weight:800; font-size:14px;" id="coCoinPlanTitle">₹349 • 2 GB/day (28 Days)</div>
+        <div style="font-size:12px; color:var(--muted); margin-top:3px;" id="coCoinPlanPerks">Unlimited 5G</div>
+      </div>
+      <button class="btn-full" onclick="confirmCoinRechargeOrder()">Pay with Green Coins & Place Order ✓</button>
+      <button class="btn-secondary" onclick="closeModal('coinOrderConfirmModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- LOGIN POPUP BANNER MODAL -->
+  <div class="overlay" id="promoBannerModal">
+    <div class="modal banner-modal">
+      <button class="banner-close-x" onclick="closeModal('promoBannerModal')" title="Close">✕</button>
+      <img id="popupBannerImg" class="banner-img" src="" alt="Offer Banner" />
+      <div class="banner-body">
+        <div style="font-weight:800; font-size:16px;" id="popupBannerTitle">Special Offer</div>
+        <button class="btn-full" style="margin-top:10px;" onclick="closeModal('promoBannerModal'); switchTab('recharge', document.querySelectorAll('.nav-item')[2]);">Explore Plans →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE MODAL (PHONE LOCKED) -->
+  <div class="overlay" id="editProfileModal">
+    <div class="modal">
+      <h2>Update Profile Settings</h2>
+      <p>Your registered mobile number cannot be changed.</p>
+      <div class="field"><label>Mobile Number (Locked)</label><input type="text" id="epPhoneLocked" disabled style="opacity:0.65; font-weight:800;" /></div>
+      <div class="field"><label>Your Name</label><input type="text" id="epName" /></div>
+      <div class="field"><label>Primary Operator</label>
+        <select id="epOp"><option value="Jio">Jio</option><option value="Airtel">Airtel</option><option value="Vi">Vi</option><option value="BSNL">BSNL</option></select>
+      </div>
+      <div class="field"><label>4-Digit Vault PIN</label><input type="password" id="epPin" maxlength="4" inputmode="numeric" /></div>
+      <button class="btn-full" onclick="saveProfileUpdates()">Save Changes</button>
+      <button class="btn-secondary" onclick="closeModal('editProfileModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PARTNER CHECKOUT MODAL -->
+  <div class="overlay" id="checkoutModal">
+    <div class="modal">
+      <h2 id="coTitle">Jio ₹349 Recharge</h2>
+      <p id="coSubtitle">Apply a promo coupon & complete recharge via partner checkout to earn Green Coins.</p>
+      <div class="fc-specs" style="margin-bottom:10px;">
+        <div><div class="fc-spec-lbl">Number</div><div class="fc-spec-val" id="coPhone">9876543210</div></div>
+        <div><div class="fc-spec-lbl">Validity</div><div class="fc-spec-val" id="coValidity">28 Days</div></div>
+        <div><div class="fc-spec-lbl">Est. Coins</div><div class="fc-spec-val" style="color:var(--forest);" id="coEstCb">🌿 5–12</div></div>
+      </div>
+
+      <div class="field">
+        <label>Have a Promo Coupon?</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="coCouponInput" placeholder="Enter code (e.g. PULSE10)" style="text-transform:uppercase;" />
+          <button class="btn-renew" style="flex:0 0 90px;" onclick="applyCheckoutCoupon()">Apply</button>
+        </div>
+        <div id="coCouponStatus" style="font-size:11px; color:var(--forest); font-weight:700; margin-top:4px;"></div>
+      </div>
+
+      <button class="btn-full" onclick="proceedToPartner('paytm')">1A. Pay via Paytm ↗</button>
+      <button class="btn-full" style="background:var(--espresso); margin-top:8px;" onclick="proceedToPartner('amazon')">1B. Pay via Amazon Pay ↗</button>
+      <button class="btn-full" style="background:var(--forest-light); margin-top:8px;" onclick="proceedToPartner('operator')">1C. Pay via Operator App (MyJio / Vi) ↗</button>
+      <button class="btn-secondary" style="color:var(--forest); border-color:var(--forest); margin-top:12px;" onclick="switchToClaimFromCheckout()">2. Completed Payment? Claim Green Coins ✓</button>
+      <button class="btn-secondary" onclick="closeModal('checkoutModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- CLAIM REWARD MODAL (CREDITS GREEN COINS TO WALLET) -->
+  <div class="overlay" id="claimModal">
+    <div class="modal">
+      <h2>🎁 Claim Green Coin Cashback</h2>
+      <p>Approved cashback + coupon bonuses are credited directly as <b>Green Coins (1 Coin = ₹1)</b>.</p>
+      <div class="field"><label>Recharged Mobile Number</label><input type="tel" id="claimPhone" maxlength="10" /></div>
+      <div class="field"><label>Plan Amount (₹)</label><input type="number" id="claimAmount" placeholder="e.g. 349" /></div>
+      <div class="field"><label>Partner Order / Transaction ID</label><input type="text" id="claimOrderId" placeholder="e.g. 2026112798765" /></div>
+      <div class="field"><label>Applied Coupon Code (Optional)</label><input type="text" id="claimCouponUsed" placeholder="e.g. PULSE10" style="text-transform:uppercase;" /></div>
+      <button class="btn-full" onclick="submitRewardClaim()">Submit Claim (Pending)</button>
+      <button class="btn-secondary" onclick="closeModal('claimModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- WITHDRAWAL MODAL (UPI OR BANK ACCOUNT) -->
+  <div class="overlay" id="withdrawModal">
+    <div class="modal">
+      <h2>💸 Withdraw Green Coins</h2>
+      <p>Available Balance: <b id="wdAvailText">🌿 0 Coins (₹0)</b>. Minimum withdrawal: <b>50 Coins (₹50)</b>.</p>
+      <div class="field"><label>Coins to Withdraw (1 Coin = ₹1)</label><input type="number" id="wdAmount" placeholder="Min 50" /></div>
+      <div class="field"><label>Payout Method</label>
+        <select id="wdMethod" onchange="toggleWithdrawFields()">
+          <option value="UPI">UPI ID</option>
+          <option value="BANK">Bank Account (NEFT / IMPS)</option>
+        </select>
+      </div>
+      <div id="wdUpiBox" class="field"><label>Your UPI ID</label><input type="text" id="wdUpiId" placeholder="e.g. aman@ybl" /></div>
+      <div id="wdBankBox" style="display:none;">
+        <div class="field"><label>Account Holder Name</label><input type="text" id="wdAccName" placeholder="Full Name" /></div>
+        <div class="field"><label>Bank Account Number</label><input type="tel" id="wdAccNum" placeholder="Account Number" /></div>
+        <div class="field"><label>IFSC Code</label><input type="text" id="wdIfsc" placeholder="e.g. MAHB0001234" style="text-transform:uppercase;" /></div>
+      </div>
+      <button class="btn-full" onclick="submitWithdrawal()">Request Withdrawal</button>
+      <button class="btn-secondary" onclick="closeModal('withdrawModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- PRO UPGRADE MODAL -->
+  <div class="overlay" id="proModal">
+    <div class="modal">
+      <h2>★ Upgrade to PlanPulse Pro (₹49)</h2>
+      <p>Unlock <b>2x Green Coin Cashback</b>, <b>Unlimited Plans</b>, <b>Priority Payouts</b>, <b>Smart Insights</b> & <b>Ad-Free</b>.</p>
+      <button class="btn-full" onclick="payForPro()">1. Pay ₹49 via UPI App ↗</button>
+      <div style="border-top:1px solid var(--border); margin:14px 0; padding-top:12px;">
+        <div style="font-size:12px; font-weight:800; margin-bottom:6px;">2. Verify Payment with 12-Digit UPI UTR</div>
+        <div class="field"><input type="tel" id="proUtrInput" maxlength="12" placeholder="Enter 12-digit UPI Ref / UTR No." /></div>
+        <button class="btn-full" style="background:var(--espresso);" onclick="submitProUtr()">Verify UTR & Request Activation ✓</button>
+      </div>
+      <button class="btn-secondary" onclick="closeModal('proModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- ADD PLAN MODAL -->
+  <div class="overlay" id="addPlanModal">
+    <div class="modal">
+      <h2>Add Active Plan</h2>
+      <p>Track a mobile recharge, fiber broadband, or OTT subscription.</p>
+      <div class="field"><label>Plan / Service Name</label><input type="text" id="planName" placeholder="e.g. Jio ₹349 Unlimited 5G" /></div>
+      <div class="field"><label>Category</label><select id="planCategory"><option value="telecom">Mobile & Fiber</option><option value="ott">OTT & Music</option></select></div>
+      <div class="field"><label>Amount Paid (₹)</label><input type="number" id="planAmount" placeholder="349" /></div>
+      <div class="field"><label>Remaining Days</label><input type="number" id="planDays" value="28" /></div>
+      <button class="btn-full" onclick="addManualPlan()">Save Plan</button>
+      <button class="btn-secondary" onclick="closeModal('addPlanModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- VAULT MODAL -->
+  <div class="overlay" id="vaultModal">
+    <div class="modal">
+      <h2>🔒 Privacy Vault</h2>
+      <p id="vaultDesc">Enter your 4-digit PIN to lock/unlock sensitive details.</p>
+      <div class="field"><input type="password" id="vaultPinInput" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; font-size:22px; letter-spacing:8px;" /></div>
+      <button class="btn-full" onclick="verifyVaultPin()">Confirm</button>
+      <button class="btn-secondary" onclick="closeModal('vaultModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- SIDE DRAWER MODALS -->
+  <div class="overlay" id="supportModal">
+    <div class="modal">
+      <h2>🎧 Customer Support</h2>
+      <p>Need help with a Coin Recharge order, Green Coin top-up UTR, or withdrawal?</p>
+      <div class="field"><label>Describe Your Issue</label><textarea id="supMsg" rows="3" placeholder="Include Order ID or UTR if applicable..."></textarea></div>
+      <button class="btn-full" onclick="sendSupportQuery()">Send to Support Team</button>
+      <button class="btn-secondary" onclick="closeModal('supportModal')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="privacyModal">
+    <div class="modal">
+      <h2>🛡️ Privacy Policy</h2>
+      <p style="line-height:1.6;">
+        <b>1. Local SMS Processing:</b> PlanPulse scans recharge confirmation SMS locally on your device to track validity. Personal messages are never uploaded.<br><br>
+        <b>2. Green Coins Loyalty System:</b> Green Coins (1 Coin = ₹1) are promotional utility credits redeemed for in-app recharge fulfillment or approved rewards payouts.<br><br>
+        <b>3. Account Lock:</b> Your registered mobile number is locked to your ID for fraud prevention.
+      </p>
+      <button class="btn-full" onclick="closeModal('privacyModal')">I Understand</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="ratingModal">
+    <div class="modal" style="text-align:center;">
+      <h2>⭐ Rate PlanPulse</h2>
+      <p>Enjoying tracking plans and recharging with Green Coins?</p>
+      <div class="star-row" id="starRow">
+        <span onclick="selectStar(1)">☆</span><span onclick="selectStar(2)">☆</span><span onclick="selectStar(3)">☆</span><span onclick="selectStar(4)">☆</span><span onclick="selectStar(5)">☆</span>
+      </div>
+      <div class="field"><input type="text" id="ratingNote" placeholder="Optional feedback..." /></div>
+      <button class="btn-full" onclick="submitRating()">Submit Rating</button>
+      <button class="btn-secondary" onclick="closeModal('ratingModal')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="themeModal">
+    <div class="modal">
+      <h2>🎨 Change App Theme</h2>
+      <p>Choose your preferred visual palette.</p>
+      <button class="btn-full" style="background:#1B4332; color:#FAF6F0;" onclick="applyTheme('cream')">🌿 Forest & Warm Cream (Default)</button>
+      <button class="btn-full" style="background:#111815; color:#34D399; margin-top:8px;" onclick="applyTheme('dark')">🌙 Midnight Emerald Dark</button>
+      <button class="btn-full" style="background:#4A2E1B; color:#F5EFE6; margin-top:8px;" onclick="applyTheme('espresso')">☕ Classic Espresso & Sand</button>
+      <button class="btn-secondary" onclick="closeModal('themeModal')">Close</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'planpulse_prod_v4';
+    const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbynln2eJ6TJBxb2uor0mkVs5MdjM9VDm55ORioJIBXPGkL0IVXqlmtzUcxKJj1ATGVw/exec';
+
+    // Dedicated Admin Credentials
+    const ADMIN_ID = 'admin@planpulse';
+    const ADMIN_PASS = 'PulseAdmin@2026';
+
+    const PARTNER_RECHARGE_URLS = {
+      paytm: 'https://paytm.com/recharge',
+      amazon: 'https://www.amazon.in/hfc/mobileRecharge',
+      Jio: 'https://www.jio.com/selfcare/recharge/mobility/',
+      Airtel: 'https://www.airtel.in/recharge-online',
+      Vi: 'https://www.myvi.in/prepaid/online-mobile-recharge',
+      BSNL: 'https://portal2.bsnl.in/myportal/quickrecharge.do'
+    };
+
+    const RECHARGE_CATALOG = {
+      Jio: [
+        { id: 'j349', cat: 'popular', price: 349, data: '2 GB/day', validity: '28 Days', perks: 'Unlimited 5G + JioTV & JioCloud', cbStd: '🌿 5–12', cbPro: '🌿 12–25' },
+        { id: 'j399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + JioCinema & JioTV', cbStd: '🌿 6–15', cbPro: '🌿 15–30' },
+        { id: 'j949', cat: 'quarterly', price: 949, data: '2 GB/day', validity: '84 Days', perks: 'Unlimited 5G + JioHotstar Mobile', cbStd: '🌿 15–30', cbPro: '🌿 30–60' },
+        { id: 'j3599', cat: 'annual', price: 3599, data: '2.5 GB/day', validity: '365 Days', perks: 'Unlimited 5G + 120GB Bonus Data', cbStd: '🌿 40–75', cbPro: '🌿 80–150' },
+        { id: 'j19', cat: 'addon', price: 19, data: '1 GB Total', validity: '1 Day', perks: 'High-Speed Data Booster', cbStd: '🌿 1–2', cbPro: '🌿 2–5' },
+        { id: 'j177', cat: 'addon', price: 177, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', cbStd: '🌿 3–6', cbPro: '🌿 6–12' }
+      ],
+      Airtel: [
+        { id: 'a349', cat: 'popular', price: 349, data: '1.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Free Hellotunes', cbStd: '🌿 5–12', cbPro: '🌿 12–25' },
+        { id: 'a399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Airtel Xstream Play', cbStd: '🌿 6–15', cbPro: '🌿 15–30' },
+        { id: 'a979', cat: 'quarterly', price: 979, data: '2 GB/day', validity: '84 Days', perks: 'Unlimited 5G + SonyLIV & Xstream', cbStd: '🌿 15–30', cbPro: '🌿 30–60' },
+        { id: 'a3599', cat: 'annual', price: 3599, data: '2 GB/day', validity: '365 Days', perks: 'Unlimited 5G + Apollo 24/7 Circle', cbStd: '🌿 40–75', cbPro: '🌿 80–150' },
+        { id: 'a22', cat: 'addon', price: 22, data: '1 GB Total', validity: '1 Day', perks: '1-Day Data Booster Pack', cbStd: '🌿 1–2', cbPro: '🌿 2–5' },
+        { id: 'a185', cat: 'addon', price: 185, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', cbStd: '🌿 3–6', cbPro: '🌿 6–12' }
+      ],
+      Vi: [
+        { id: 'v349', cat: 'popular', price: 349, data: '1.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Binge All Night', cbStd: '🌿 5–12', cbPro: '🌿 12–25' },
+        { id: 'v399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Weekend Data Rollover + 5G', cbStd: '🌿 6–15', cbPro: '🌿 15–30' },
+        { id: 'v979', cat: 'quarterly', price: 979, data: '2 GB/day', validity: '84 Days', perks: 'Vi Movies & TV + Night Unlimited', cbStd: '🌿 15–30', cbPro: '🌿 30–60' },
+        { id: 'v3599', cat: 'annual', price: 3599, data: '2 GB/day', validity: '365 Days', perks: 'Half-Day Unlimited + Weekend Rollover', cbStd: '🌿 40–75', cbPro: '🌿 80–150' },
+        { id: 'v23', cat: 'addon', price: 23, data: '1 GB Total', validity: '1 Day', perks: '1-Day Data Booster Pack', cbStd: '🌿 1–2', cbPro: '🌿 2–5' },
+        { id: 'v185', cat: 'addon', price: 185, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', cbStd: '🌿 3–6', cbPro: '🌿 6–12' }
+      ],
+      BSNL: [
+        { id: 'b225', cat: 'popular', price: 225, data: '2.5 GB/day', validity: '30 Days', perks: 'Unlimited Calls + 100 SMS/day', cbStd: '🌿 4–9', cbPro: '🌿 9–18' },
+        { id: 'b498', cat: 'quarterly', price: 498, data: '1.5 GB/day', validity: '82 Days', perks: 'Unlimited Calls + 100 SMS/day', cbStd: '🌿 8–18', cbPro: '🌿 18–36' },
+        { id: 'b2449', cat: 'annual', price: 2449, data: '2 GB/day', validity: '365 Days', perks: 'Best Value Annual 4G Pack', cbStd: '🌿 25–55', cbPro: '🌿 55–110' },
+        { id: 'b19', cat: 'addon', price: 19, data: '2 GB Total', validity: '1 Day', perks: '1-Day Data Booster', cbStd: '🌿 1–2', cbPro: '🌿 2–5' }
+      ]
+    };
+
+    function getDefaultState() {
+      return {
+        session: null,
+        theme: 'cream',
+        vaultLocked: false,
+        currentFilter: 'all',
+        catalogFilter: 'popular',
+        coinCatFilter: 'popular',
+        monetization: { upiId: 'Glottedu@ptaxis', payeeName: 'PlanPulse', proPrice: 49 },
+        users: [], // { name, phone, operator, password, pin, isPro, walletBalance (Green Coins), joinedAt }
+        plans: [],
+        history: [],
+        rewards: [],
+        coinTopups: [], // { id, phone, name, coins, discount, paidAmount, couponCode, utr, status, date }
+        coinRecharges: [], // { id, ownerPhone, ownerName, targetPhone, operator, planId, planPrice, planData, planValidity, planPerks, coinsUsed, status, date }
+        proRequests: [],
+        withdrawals: [],
+        banners: [
+          { id: 'bnr_default', title: 'Top up Green Coins (1 Coin = ₹1) & get instant promo discounts!', imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80', active: true }
+        ],
+        coupons: [
+          { code: 'PULSE10', bonus: 10, minAmount: 199, active: true },
+          { code: 'GREEN20', bonus: 20, minAmount: 349, active: true }
+        ]
+      };
+    }
+
+    let appState = loadState();
+    let selectedCheckoutPlan = null;
+    let selectedCoinPlan = null;
+    let appliedCheckoutCoupon = null;
+    let appliedTopupCoupon = null;
+    let pendingSignupStep1 = null;
+    let selectedStarCount = 5;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        return Object.assign(getDefaultState(), JSON.parse(raw));
+      } catch (e) { return getDefaultState(); }
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function copyTextSafe(txt) {
+      if (window.AndroidAdBridge && window.AndroidAdBridge.copyText) {
+        window.AndroidAdBridge.copyText(txt);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(txt).catch(() => {});
+      }
+    }
+
+    function getCurrentUser() {
+      if (!appState.session || appState.session.role === 'admin') return null;
+      return appState.users.find(u => u.phone === appState.session.phone) || null;
+    }
+
+    function isAdminSession() {
+      return appState.session && appState.session.role === 'admin';
+    }
+
+    /* ================= THEME & SIDE DRAWER ================= */
+    function applyTheme(theme) {
+      appState.theme = theme;
+      document.body.classList.remove('theme-dark', 'theme-espresso');
+      if (theme === 'dark') document.body.classList.add('theme-dark');
+      if (theme === 'espresso') document.body.classList.add('theme-espresso');
+      saveState();
+      closeModal('themeModal');
+      showToast('Theme updated!');
+    }
+
+    function openSideDrawer() {
+      const u = getCurrentUser();
+      if (isAdminSession()) {
+        document.getElementById('drawerAvatar').textContent = '🛡️';
+        document.getElementById('drawerName').textContent = 'Administrator';
+        document.getElementById('drawerPhone').textContent = ADMIN_ID;
+        document.getElementById('drawerRoleBadge').textContent = 'ADMIN';
+        document.getElementById('drawerWalletBadge').textContent = 'Full Control';
+      } else if (u) {
+        document.getElementById('drawerAvatar').textContent = (u.name || 'U')[0].toUpperCase();
+        document.getElementById('drawerName').textContent = u.name;
+        document.getElementById('drawerPhone').textContent = `${u.operator} • ${u.phone}`;
+        document.getElementById('drawerRoleBadge').textContent = u.isPro ? '★ PRO MEMBER' : 'STANDARD';
+        document.getElementById('drawerWalletBadge').textContent = `🌿 ${u.walletBalance || 0} Coins`;
+      }
+      document.getElementById('drawerBackdrop').classList.add('open');
+      document.getElementById('sideDrawer').classList.add('open');
+    }
+
+    function closeSideDrawer() {
+      document.getElementById('drawerBackdrop').classList.remove('open');
+      document.getElementById('sideDrawer').classList.remove('open');
+    }
+
+    function sendSupportQuery() {
+      const msg = document.getElementById('supMsg').value.trim();
+      if (!msg) return showToast('Enter your support message');
+      document.getElementById('supMsg').value = '';
+      closeModal('supportModal');
+      showToast('Support ticket submitted! We will reply shortly.');
+    }
+
+    function selectStar(n) {
+      selectedStarCount = n;
+      const spans = document.getElementById('starRow').querySelectorAll('span');
+      spans.forEach((s, idx) => { s.textContent = idx < n ? '★' : '☆'; s.style.color = idx < n ? 'var(--gold)' : 'var(--muted)'; });
+    }
+
+    function submitRating() {
+      closeModal('ratingModal');
+      showToast(`Thank you for rating PlanPulse ${selectedStarCount}★!`);
+    }
+
+    /* ================= TWO-STEP SIGNUP, LOGIN & FORGOT PASSWORD ================= */
+    function switchAuthMode(mode) {
+      document.getElementById('auth-login').style.display = (mode === 'login') ? 'block' : 'none';
+      document.getElementById('auth-signup').style.display = (mode === 'signup') ? 'block' : 'none';
+      document.getElementById('auth-forgot').style.display = (mode === 'forgot') ? 'block' : 'none';
+      document.getElementById('authTabBar').style.display = (mode === 'forgot') ? 'none' : 'flex';
+      document.getElementById('tabLoginBtn').classList.toggle('active', mode === 'login');
+      document.getElementById('tabSignupBtn').classList.toggle('active', mode === 'signup');
+      if (mode === 'signup') backSignupStep1();
+    }
+
+    function goSignupStep2() {
+      const name = document.getElementById('suName').value.trim();
+      const phone = document.getElementById('suPhone').value.replace(/\D/g, '');
+      const operator = document.getElementById('suOp').value;
+      if (!name) return showToast('Enter your full name');
+      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number');
+      if (appState.users.some(u => u.phone === phone)) {
+        return showToast('Number already registered! Please Login or use Forgot Password.');
+      }
+      pendingSignupStep1 = { name, phone, operator };
+      document.getElementById('suPhonePreview').textContent = phone;
+      document.getElementById('signup-step-1').style.display = 'none';
+      document.getElementById('signup-step-2').style.display = 'block';
+    }
+
+    function backSignupStep1() {
+      document.getElementById('signup-step-1').style.display = 'block';
+      document.getElementById('signup-step-2').style.display = 'none';
+    }
+
+    function completeSignup() {
+      if (!pendingSignupStep1) return backSignupStep1();
+      const password = document.getElementById('suPass').value.trim();
+      const pin = document.getElementById('suPin').value.replace(/\D/g, '');
+      if (password.length < 4) return showToast('Password must be at least 4 characters');
+      if (pin.length !== 4) return showToast('Set a 4-digit Vault PIN');
+
+      const newUser = {
+        ...pendingSignupStep1,
+        password,
+        pin,
+        isPro: false,
+        walletBalance: 0,
+        joinedAt: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.users.push(newUser);
+      appState.session = { phone: newUser.phone, role: 'user' };
+      saveState();
+
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'register_user', user: newUser })
+      }).catch(() => {});
+
+      document.getElementById('authScreen').style.display = 'none';
+      renderAll();
+      showToast('Account created & logged in!');
+      triggerLoginBannerPopup();
+      runRealSmsScan();
+    }
+
+    function handleLogin() {
+      const id = document.getElementById('loginId').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      if (!id || !pass) return showToast('Enter ID and password');
+
+      if (id.toLowerCase() === ADMIN_ID && pass === ADMIN_PASS) {
+        appState.session = { phone: ADMIN_ID, role: 'admin' };
+        saveState();
+        document.getElementById('authScreen').style.display = 'none';
+        renderAll();
+        syncAllCloudData();
+        switchTab('profile', document.getElementById('navAccountBtn'));
+        return showToast('Logged in as Administrator 🛡️');
+      }
+
+      const cleanPhone = id.replace(/\D/g, '');
+      const user = appState.users.find(u => u.phone === cleanPhone && u.password === pass);
+      if (!user) return showToast('Invalid mobile number or password');
+
+      appState.session = { phone: user.phone, role: 'user' };
+      saveState();
+      document.getElementById('authScreen').style.display = 'none';
+      renderAll();
+      syncAllCloudData();
+      showToast('Welcome back, ' + user.name + '!');
+      triggerLoginBannerPopup();
+    }
+
+    function handleResetPassword() {
+      const phone = document.getElementById('fpPhone').value.replace(/\D/g, '');
+      const pin = document.getElementById('fpPin').value.replace(/\D/g, '');
+      const newPass = document.getElementById('fpNewPass').value.trim();
+      const user = appState.users.find(u => u.phone === phone);
+      if (!user) return showToast('No account found for this number');
+      if (user.pin !== pin) return showToast('Incorrect 4-digit Vault PIN');
+      if (newPass.length < 4) return showToast('New password must be at least 4 characters');
+
+      user.password = newPass;
+      appState.session = { phone: user.phone, role: 'user' };
+      saveState();
+      document.getElementById('authScreen').style.display = 'none';
+      renderAll();
+      showToast('Password reset & logged in!');
+    }
+
+    function logoutUser() {
+      closeSideDrawer();
+      appState.session = null;
+      saveState();
+      document.getElementById('loginId').value = '';
+      document.getElementById('loginPass').value = '';
+      switchAuthMode('login');
+      document.getElementById('authScreen').style.display = 'flex';
+    }
+
+    function triggerLoginBannerPopup() {
+      if (isAdminSession()) return;
+      const activeBanner = (appState.banners || []).find(b => b.active && b.imageUrl);
+      if (!activeBanner) return;
+      document.getElementById('popupBannerImg').src = activeBanner.imageUrl;
+      document.getElementById('popupBannerTitle').textContent = activeBanner.title || 'Special Offer';
+      openModal('promoBannerModal');
+    }
+
+    /* ================= SMS SCAN & PLANS ================= */
+    function runRealSmsScan() {
+      const u = getCurrentUser();
+      if (!u) return showToast('Login as user to scan SMS');
+      if (!window.AndroidAdBridge || typeof window.AndroidAdBridge.scanRealRechargeSms !== 'function') {
+        return showToast('Open inside PlanPulse Android app to scan SMS');
+      }
+      const raw = window.AndroidAdBridge.scanRealRechargeSms();
+      if (raw === 'PERMISSION_DENIED') return showToast('Allow SMS permission & tap Scan again');
+      if (!raw || raw.startsWith('ERROR')) return showToast('SMS Bridge: ' + (raw || 'Empty response'));
+
+      try {
+        const cleanedRaw = raw.replace(/[\x00-\x1F\x7F]/g, ' ');
+        const smsList = JSON.parse(cleanedRaw);
+        const now = Date.now();
+        const userPhone = u.phone;
+        const userOp = u.operator.toUpperCase();
+        let added = 0;
+
+        smsList.forEach(item => {
+          const text = (item.snippet || '').toLowerCase();
+          const senderUpper = (item.sender || '').toUpperCase();
+          if (/(offer|avail|win|click|http|expired|expires|exhausted|data used|alert|reminder|due)/i.test(text)) return;
+          if (!/(successful|activated|credited|thank you for recharging|recharge of|recharged|plan of)/i.test(text)) return;
+
+          const phoneMatch = text.match(/(?:\+91[\-\s]?)?([6-9]\d{9})/);
+          if (phoneMatch && phoneMatch[1] !== userPhone) return;
+
+          const isOtt = /NETFLIX|HOTSTAR|SPOTIFY|PRIME|YOUTUBE/i.test(senderUpper + ' ' + text);
+          if (!isOtt && !senderUpper.includes(userOp) && !text.includes(userOp.toLowerCase())) return;
+
+          const daysMatch = text.match(/(\d+)\s*days?/i);
+          if (!daysMatch) return;
+          const validDays = parseInt(daysMatch[1], 10);
+          const daysElapsed = Math.floor((now - item.dateMs) / (1000 * 60 * 60 * 24));
+          const daysLeft = validDays - daysElapsed;
+          if (daysLeft <= 0) return;
+
+          const category = isOtt ? 'ott' : 'telecom';
+          const title = isOtt ? `${item.sender.replace(/[^A-Z]/gi, '') || 'OTT'} ₹${item.amount} Plan` : `${u.operator} ₹${item.amount} (${userPhone})`;
+          const duplicate = appState.plans.some(p => p.ownerPhone === userPhone && p.amount === item.amount && Math.abs(p.daysLeft - daysLeft) <= 1);
+          if (!duplicate) {
+            appState.plans.unshift({ id: 'sms_' + item.dateMs + '_' + item.amount, ownerPhone: userPhone, name: title, category, amount: item.amount, totalDays: validDays, daysLeft, source: 'Verified SMS' });
+            added++;
+          }
+        });
+        saveState();
+        renderAll();
+        showToast(added > 0 ? `Found ${added} active plan(s)` : `No new active plans on ${userPhone}`);
+      } catch (e) { showToast('SMS Error: ' + e.message); }
+    }
+
+    function openAddPlanModal() {
+      const u = getCurrentUser();
+      const myPlans = u ? appState.plans.filter(p => p.ownerPhone === u.phone) : [];
+      if (u && !u.isPro && myPlans.length >= 2) {
+        openModal('proModal');
+        return showToast('Free limit: 2 active plans. Upgrade to Pro for unlimited!');
+      }
+      openModal('addPlanModal');
+    }
+
+    function addManualPlan() {
+      const u = getCurrentUser();
+      if (!u) return;
+      const name = document.getElementById('planName').value.trim();
+      const category = document.getElementById('planCategory').value;
+      const amount = parseFloat(document.getElementById('planAmount').value);
+      const days = parseInt(document.getElementById('planDays').value, 10) || 28;
+      if (!name || !amount || amount <= 0) return showToast('Enter plan name and valid amount');
+
+      appState.plans.unshift({ id: 'man_' + Date.now(), ownerPhone: u.phone, name, category, amount, totalDays: days, daysLeft: days, source: 'Manual Entry' });
+      document.getElementById('planName').value = '';
+      document.getElementById('planAmount').value = '';
+      saveState();
+      closeModal('addPlanModal');
+      renderAll();
+      showToast('Plan added!');
+    }
+
+    function deletePlan(id) {
+      appState.plans = appState.plans.filter(p => p.id !== id);
+      saveState();
+      renderAll();
+      showToast('Plan removed');
+    }
+
+    /* ================= PRO UTR VERIFICATION ================= */
+    function payForPro() {
+      const u = getCurrentUser();
+      const note = u ? `PlanPulsePro_${u.phone}` : 'PlanPulsePro';
+      window.location.href = `upi://pay?pa=${encodeURIComponent(appState.monetization.upiId)}&pn=${encodeURIComponent(appState.monetization.payeeName)}&am=${appState.monetization.proPrice}&cu=INR&tn=${encodeURIComponent(note)}`;
+    }
+
+    function submitProUtr() {
+      const u = getCurrentUser();
+      if (!u) return;
+      if (u.isPro) return showToast('You are already a Pro member!');
+      const utr = document.getElementById('proUtrInput').value.replace(/\D/g, '');
+      if (utr.length !== 12) return showToast('Enter a valid 12-digit UPI UTR number');
+      if (appState.proRequests.some(r => r.utr === utr)) return showToast('This UTR has already been submitted!');
+
+      const req = {
+        id: 'PRO' + Date.now().toString().slice(-6),
+        phone: u.phone,
+        name: u.name,
+        utr,
+        amount: appState.monetization.proPrice,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      let autoConfirmed = false;
+      if (window.AndroidAdBridge && typeof window.AndroidAdBridge.scanRealRechargeSms === 'function') {
+        try {
+          const smsRaw = window.AndroidAdBridge.scanRealRechargeSms();
+          if (smsRaw && smsRaw.includes(utr) && /(credited|received|rs\.?\s*49|inr\s*49)/i.test(smsRaw)) {
+            req.status = 'Approved';
+            u.isPro = true;
+            autoConfirmed = true;
+          }
+        } catch (e) {}
+      }
+
+      appState.proRequests.unshift(req);
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_pro', request: req })
+      }).catch(() => {});
+
+      document.getElementById('proUtrInput').value = '';
+      closeModal('proModal');
+      renderAll();
+      showToast(autoConfirmed ? 'UTR Auto-Verified! PlanPulse Pro Unlocked ★' : 'UTR Submitted! Pro unlocks once Admin verifies.');
+    }
+
+    /* ================= RECHARGE SUB-TABS ================= */
+    function switchRechargeSubTab(sub) {
+      document.getElementById('recharge-sub-plans').style.display = (sub === 'plans') ? 'block' : 'none';
+      document.getElementById('recharge-sub-coin-rch').style.display = (sub === 'coin_recharge') ? 'block' : 'none';
+      document.getElementById('recharge-sub-wallet').style.display = (sub === 'wallet') ? 'block' : 'none';
+      document.getElementById('recharge-sub-rewards').style.display = (sub === 'rewards') ? 'block' : 'none';
+
+      document.getElementById('segPlansBtn').classList.toggle('active', sub === 'plans');
+      document.getElementById('segCoinRchBtn').classList.toggle('active', sub === 'coin_recharge');
+      document.getElementById('segWalletBtn').classList.toggle('active', sub === 'wallet');
+      document.getElementById('segRewardsBtn').classList.toggle('active', sub === 'rewards');
+
+      if (sub === 'coin_recharge') renderCoinRechargeCatalog();
+      if (sub === 'wallet') renderWalletAndCoupons();
+      if (sub === 'rewards') { renderRewards(); syncAllCloudData(); }
+    }
+
+    function setCatalogFilter(cat, btn) {
+      appState.catalogFilter = cat;
+      btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderRechargeCatalog();
+    }
+
+    function renderRechargeCatalog() {
+      const list = document.getElementById('rechargeCatalogList');
+      const op = document.getElementById('fcOpSelect').value || 'Jio';
+      const u = getCurrentUser();
+      const isPro = u && u.isPro;
+      const catalog = RECHARGE_CATALOG[op] || RECHARGE_CATALOG.Jio;
+      let items = catalog.filter(p => p.cat === appState.catalogFilter);
+      if (!items.length) items = catalog;
+
+      list.innerHTML = items.map(p => {
+        const cbDisplay = isPro ? `${p.cbPro} ★ PRO` : p.cbStd;
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge">${op} • ${p.validity}</span>
+                <span class="badge badge-ok" style="margin-left:4px;">${cbDisplay} Coins</span>
+                <div class="plan-title" style="margin-top:6px;">₹${p.price} • ${p.data}</div>
+                <div class="plan-meta">${p.perks}</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="plan-price">₹${p.price}</div>
+                <button class="btn-renew" style="margin-top:8px;" onclick="openPlanCheckout('${op}', '${p.id}')">Partner Pay →</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ================= COIN RECHARGE SECTION (PAY WITH GREEN COINS -> ADMIN FULFILLS) ================= */
+    function setCoinCatFilter(cat, btn) {
+      appState.coinCatFilter = cat;
+      btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderCoinRechargeCatalog();
+    }
+
+    function renderCoinRechargeCatalog() {
+      const u = getCurrentUser();
+      const bal = (u && u.walletBalance) || 0;
+      document.getElementById('coinRchBalBadge').textContent = `🌿 ${bal} Coins`;
+
+      const list = document.getElementById('coinRechargeCatalogList');
+      const op = document.getElementById('crOpSelect').value || 'Jio';
+      const catalog = RECHARGE_CATALOG[op] || RECHARGE_CATALOG.Jio;
+      let items = catalog.filter(p => p.cat === appState.coinCatFilter);
+      if (!items.length) items = catalog;
+
+      list.innerHTML = items.map(p => {
+        const canAfford = bal >= p.price;
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge">${op} • ${p.validity}</span>
+                <span class="badge ${canAfford ? 'badge-ok' : 'badge-warn'}" style="margin-left:4px;">${canAfford ? 'Ready via Coins' : `Need ${p.price - bal} more`}</span>
+                <div class="plan-title" style="margin-top:6px;">₹${p.price} • ${p.data}</div>
+                <div class="plan-meta">${p.perks}</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="plan-price" style="color:var(--forest);">🌿 ${p.price}</div>
+                <button class="btn-renew" style="margin-top:8px;" onclick="openCoinOrderModal('${op}', '${p.id}')">Use Coins →</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Render User's Coin Recharge Orders
+      const oList = document.getElementById('userCoinOrdersList');
+      const myOrders = u ? (appState.coinRecharges || []).filter(o => o.ownerPhone === u.phone) : [];
+      oList.innerHTML = myOrders.length ? myOrders.map(o => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:800; font-size:13px;">${o.operator} ₹${o.planPrice} • ${o.targetPhone}</div>
+            <div style="font-size:11px; color:var(--muted);">${o.planData} (${o.planValidity}) • ${o.date}</div>
+          </div>
+          <span class="badge ${o.status === 'Completed' ? 'badge-ok' : 'badge-warn'}">${o.status === 'Completed' ? '🟢 RECHARGED' : '🟡 PROCESSING'}</span>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--muted);">No Green Coin recharge orders yet.</p>';
+    }
+
+    function openCoinOrderModal(op, planId) {
+      const u = getCurrentUser();
+      if (!u) return;
+      const phone = document.getElementById('crPhoneInput').value.replace(/\D/g, '');
+      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number first');
+      const plan = (RECHARGE_CATALOG[op] || []).find(p => p.id === planId);
+      if (!plan) return;
+
+      const bal = u.walletBalance || 0;
+      if (bal < plan.price) {
+        showToast(`Insufficient Green Coins (Have ${bal}, need ${plan.price}). Top up coins!`);
+        return openTopupCoinsModal(plan.price - bal);
+      }
+
+      selectedCoinPlan = { ...plan, op, targetPhone: phone };
+      document.getElementById('coCoinPhone').textContent = phone;
+      document.getElementById('coCoinOp').textContent = op;
+      document.getElementById('coCoinCost').textContent = `🌿 ${plan.price} Coins`;
+      document.getElementById('coCoinPlanTitle').textContent = `${op} ₹${plan.price} • ${plan.data} (${plan.validity})`;
+      document.getElementById('coCoinPlanPerks').textContent = plan.perks;
+      openModal('coinOrderConfirmModal');
+    }
+
+    function confirmCoinRechargeOrder() {
+      const u = getCurrentUser();
+      if (!u || !selectedCoinPlan) return;
+      if ((u.walletBalance || 0) < selectedCoinPlan.price) {
+        closeModal('coinOrderConfirmModal');
+        return showToast('Insufficient Green Coins!');
+      }
+
+      u.walletBalance -= selectedCoinPlan.price;
+      const order = {
+        id: 'CRCH' + Date.now().toString().slice(-6),
+        ownerPhone: u.phone,
+        ownerName: u.name,
+        targetPhone: selectedCoinPlan.targetPhone,
+        operator: selectedCoinPlan.op,
+        planId: selectedCoinPlan.id,
+        planPrice: selectedCoinPlan.price,
+        planData: selectedCoinPlan.data,
+        planValidity: selectedCoinPlan.validity,
+        planPerks: selectedCoinPlan.perks,
+        coinsUsed: selectedCoinPlan.price,
+        isPro: !!u.isPro,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.coinRecharges.unshift(order);
+      appState.history.unshift({
+        id: 'hist_' + Date.now(),
+        ownerPhone: u.phone,
+        title: `${order.operator} ₹${order.planPrice} (${order.targetPhone})`,
+        amount: order.planPrice,
+        orderId: order.id,
+        date: order.date,
+        source: `🌿 ${order.coinsUsed} Green Coins`
+      });
+
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_coin_recharge', order })
+      }).catch(() => {});
+
+      closeModal('coinOrderConfirmModal');
+      renderAll();
+      renderCoinRechargeCatalog();
+      showToast('Recharge order placed! Admin will fulfill it shortly.');
+    }
+
+    /* ================= GREEN COINS TOP-UP WITH PROMO CODE DISCOUNT ================= */
+    function openTopupCoinsModal(prefillCoins) {
+      appliedTopupCoupon = null;
+      document.getElementById('tuCoinsInput').value = prefillCoins || 349;
+      document.getElementById('tuCouponInput').value = '';
+      document.getElementById('tuCouponMsg').textContent = '';
+      document.getElementById('tuUtrInput').value = '';
+      recalcTopupPayable();
+      openModal('topupCoinsModal');
+    }
+
+    function recalcTopupPayable() {
+      const coins = Math.max(0, parseInt(document.getElementById('tuCoinsInput').value, 10) || 0);
+      let discount = 0;
+      if (appliedTopupCoupon && coins >= appliedTopupCoupon.minAmount) {
+        discount = Math.min(coins - 1, appliedTopupCoupon.bonus);
+      } else if (appliedTopupCoupon && coins < appliedTopupCoupon.minAmount) {
+        document.getElementById('tuCouponMsg').textContent = `Add at least ${appliedTopupCoupon.minAmount} coins for ${appliedTopupCoupon.code}.`;
+      }
+      const payable = Math.max(0, coins - discount);
+      document.getElementById('tuSummaryCoins').textContent = `🌿 ${coins}`;
+      document.getElementById('tuSummaryDisc').textContent = `-₹${discount}`;
+      document.getElementById('tuSummaryPay').textContent = `₹${payable}`;
+      return { coins, discount, payable };
+    }
+
+    function applyTopupCoupon() {
+      const code = document.getElementById('tuCouponInput').value.trim().toUpperCase();
+      const coins = parseInt(document.getElementById('tuCoinsInput').value, 10) || 0;
+      const c = (appState.coupons || []).find(x => x.active && x.code.toUpperCase() === code);
+      if (!c) return showToast('Invalid or expired promo code');
+      if (coins < c.minAmount) return showToast(`Minimum ${c.minAmount} coins required for ${c.code}`);
+      appliedTopupCoupon = c;
+      document.getElementById('tuCouponMsg').textContent = `✓ Promo ${c.code} applied! Instant ₹${c.bonus} discount on your coins.`;
+      recalcTopupPayable();
+      showToast(`Discount ₹${c.bonus} applied!`);
+    }
+
+    function payForGreenCoinsUpi() {
+      const u = getCurrentUser();
+      const { coins, payable } = recalcTopupPayable();
+      if (coins < 20) return showToast('Minimum top-up is 20 Green Coins (₹20)');
+      const note = u ? `GreenCoins_${coins}_${u.phone}` : `GreenCoins_${coins}`;
+      window.location.href = `upi://pay?pa=${encodeURIComponent(appState.monetization.upiId)}&pn=${encodeURIComponent(appState.monetization.payeeName)}&am=${payable}&cu=INR&tn=${encodeURIComponent(note)}`;
+    }
+
+    function submitCoinTopup() {
+      const u = getCurrentUser();
+      if (!u) return;
+      const { coins, discount, payable } = recalcTopupPayable();
+      if (coins < 20) return showToast('Minimum top-up is 20 Green Coins');
+      const utr = document.getElementById('tuUtrInput').value.replace(/\D/g, '');
+      if (utr.length !== 12) return showToast('Enter a valid 12-digit UPI UTR number');
+      if ((appState.coinTopups || []).some(t => t.utr === utr)) return showToast('This UTR has already been submitted!');
+
+      const topup = {
+        id: 'GCT' + Date.now().toString().slice(-6),
+        phone: u.phone,
+        name: u.name,
+        coins,
+        discount,
+        paidAmount: payable,
+        couponCode: appliedTopupCoupon ? appliedTopupCoupon.code : 'None',
+        utr,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.coinTopups.unshift(topup);
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_coin_topup', topup })
+      }).catch(() => {});
+
+      closeModal('topupCoinsModal');
+      renderWalletAndCoupons();
+      showToast(`Top-up of ${coins} Green Coins submitted! Credits after UTR verification.`);
+    }
+
+    /* ================= PARTNER CHECKOUT & CLAIMS ================= */
+    function openPlanCheckout(op, planId) {
+      const phone = document.getElementById('fcPhoneInput').value.replace(/\D/g, '');
+      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number first');
+      const plan = (RECHARGE_CATALOG[op] || []).find(p => p.id === planId);
+      if (!plan) return;
+
+      const u = getCurrentUser();
+      selectedCheckoutPlan = { ...plan, op, phone };
+      appliedCheckoutCoupon = null;
+      copyTextSafe(phone);
+
+      document.getElementById('coTitle').textContent = `${op} ₹${plan.price} Recharge`;
+      document.getElementById('coPhone').textContent = phone;
+      document.getElementById('coValidity').textContent = plan.validity;
+      document.getElementById('coEstCb').textContent = (u && u.isPro) ? plan.cbPro : plan.cbStd;
+      document.getElementById('coCouponInput').value = '';
+      document.getElementById('coCouponStatus').textContent = '';
+      openModal('checkoutModal');
+    }
+
+    function applyCheckoutCoupon() {
+      if (!selectedCheckoutPlan) return;
+      const code = document.getElementById('coCouponInput').value.trim().toUpperCase();
+      const c = (appState.coupons || []).find(x => x.active && x.code.toUpperCase() === code);
+      if (!c) return showToast('Invalid or expired coupon code');
+      if (selectedCheckoutPlan.price < c.minAmount) return showToast(`Minimum recharge ₹${c.minAmount} required for ${c.code}`);
+      appliedCheckoutCoupon = c;
+      document.getElementById('coCouponStatus').textContent = `✓ Coupon ${c.code} applied! +${c.bonus} bonus Green Coins on approval.`;
+      showToast(`Coupon ${c.code} applied!`);
+    }
+
+    function proceedToPartner(channel) {
+      if (!selectedCheckoutPlan) return;
+      copyTextSafe(selectedCheckoutPlan.phone);
+      const url = (channel === 'operator')
+        ? (PARTNER_RECHARGE_URLS[selectedCheckoutPlan.op] || PARTNER_RECHARGE_URLS.paytm)
+        : (PARTNER_RECHARGE_URLS[channel] || PARTNER_RECHARGE_URLS.paytm);
+      showToast(`Copied ${selectedCheckoutPlan.phone} — Opening ${channel.toUpperCase()}`);
+      setTimeout(() => { window.location.href = url; }, 500);
+    }
+
+    function switchToClaimFromCheckout() {
+      closeModal('checkoutModal');
+      openClaimModal();
+      if (selectedCheckoutPlan) {
+        document.getElementById('claimPhone').value = selectedCheckoutPlan.phone;
+        document.getElementById('claimAmount').value = selectedCheckoutPlan.price;
+        document.getElementById('claimCouponUsed').value = appliedCheckoutCoupon ? appliedCheckoutCoupon.code : '';
+      }
+    }
+
+    function openClaimModal() {
+      const u = getCurrentUser();
+      if (u) document.getElementById('claimPhone').value = u.phone;
+      openModal('claimModal');
+    }
+
+    function submitRewardClaim() {
+      const u = getCurrentUser();
+      if (!u) return;
+      const phone = document.getElementById('claimPhone').value.replace(/\D/g, '').slice(-10);
+      const amount = parseFloat(document.getElementById('claimAmount').value);
+      const orderId = document.getElementById('claimOrderId').value.trim();
+      const couponCode = document.getElementById('claimCouponUsed').value.trim().toUpperCase();
+      const operator = (selectedCheckoutPlan && selectedCheckoutPlan.op) || u.operator || 'Jio';
+
+      if (phone.length !== 10) return showToast('Enter 10-digit recharged mobile number');
+      if (!amount || amount <= 0) return showToast('Enter valid recharge amount');
+      if (!orderId) return showToast('Enter your Transaction / Order ID');
+
+      const couponObj = (appState.coupons || []).find(c => c.active && c.code.toUpperCase() === couponCode && amount >= c.minAmount);
+
+      const newClaim = {
+        id: 'CLM' + Date.now().toString().slice(-6),
+        ownerPhone: u.phone,
+        phone,
+        operator,
+        amount,
+        orderId,
+        couponCode: couponObj ? `${couponObj.code} (+${couponObj.bonus} Coins)` : 'None',
+        isPro: !!u.isPro,
+        status: 'Pending',
+        cashback: 0,
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.rewards.unshift(newClaim);
+      appState.history.unshift({
+        id: 'hist_' + Date.now(),
+        ownerPhone: u.phone,
+        title: `${operator} ₹${amount} (${phone})`,
+        amount,
+        orderId,
+        date: newClaim.date,
+        source: 'Partner Store'
+      });
+
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create', claim: newClaim })
+      }).catch(() => {});
+
+      closeModal('claimModal');
+      switchRechargeSubTab('rewards');
+      renderAll();
+      showToast('Claim submitted! Green Coins will credit to your Wallet.');
+    }
+
+    function renderWalletAndCoupons() {
+      const u = getCurrentUser();
+      const bal = (u && u.walletBalance) || 0;
+      document.getElementById('walletBalanceBig').textContent = mask(`🌿 ${bal} Coins`);
+
+      const cList = document.getElementById('userCouponsList');
+      const activeCoupons = (appState.coupons || []).filter(c => c.active);
+      cList.innerHTML = activeCoupons.length ? activeCoupons.map(c => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg); border:1px dashed var(--border); border-radius:12px; margin-bottom:8px;">
+          <div>
+            <span class="badge badge-ok">${c.code}</span>
+            <div style="font-size:12px; font-weight:700; margin-top:4px;">₹${c.bonus} Off Coin Top-Up / +${c.bonus} Bonus Coins (Min ₹${c.minAmount})</div>
+          </div>
+          <button class="btn-pill btn-scan" onclick="copyTextSafe('${c.code}'); showToast('Copied ${c.code}!');">Copy</button>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--muted);">No active coupons right now.</p>';
+
+      const tList = document.getElementById('userCoinTopupsList');
+      const myTopups = u ? (appState.coinTopups || []).filter(t => t.phone === u.phone) : [];
+      tList.innerHTML = myTopups.length ? myTopups.map(t => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:800; font-size:13px;">🌿 ${t.coins} Green Coins (Paid ₹${t.paidAmount})</div>
+            <div style="font-size:11px; color:var(--muted);">UTR: ${t.utr} • Promo: ${t.couponCode} • ${t.date}</div>
+          </div>
+          <span class="badge ${t.status === 'Approved' ? 'badge-ok' : 'badge-warn'}">${t.status}</span>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--muted);">No Green Coin top-ups yet.</p>';
+
+      const wList = document.getElementById('userWithdrawalsList');
+      const myWds = u ? appState.withdrawals.filter(w => w.phone === u.phone) : [];
+      wList.innerHTML = myWds.length ? myWds.map(w => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:800; font-size:13px;">${w.amount} Coins (₹${w.amount}) via ${w.method}</div>
+            <div style="font-size:11px; color:var(--muted);">${w.details} • ${w.date}</div>
+          </div>
+          <span class="badge ${w.status === 'Approved' ? 'badge-ok' : 'badge-warn'}">${w.status}</span>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--muted);">No withdrawal requests yet.</p>';
+    }
+
+    function openWithdrawModal() {
+      const u = getCurrentUser();
+      const bal = (u && u.walletBalance) || 0;
+      document.getElementById('wdAvailText').textContent = `🌿 ${bal} Coins (₹${bal})`;
+      document.getElementById('wdAmount').value = bal >= 50 ? bal : '';
+      openModal('withdrawModal');
+    }
+
+    function toggleWithdrawFields() {
+      const m = document.getElementById('wdMethod').value;
+      document.getElementById('wdUpiBox').style.display = (m === 'UPI') ? 'block' : 'none';
+      document.getElementById('wdBankBox').style.display = (m === 'BANK') ? 'block' : 'none';
+    }
+
+    function submitWithdrawal() {
+      const u = getCurrentUser();
+      if (!u) return;
+      const amt = parseFloat(document.getElementById('wdAmount').value);
+      const method = document.getElementById('wdMethod').value;
+      const bal = u.walletBalance || 0;
+
+      if (!amt || amt < 50) return showToast('Minimum withdrawal is 50 Green Coins (₹50)');
+      if (amt > bal) return showToast('Insufficient Green Coins balance');
+
+      let details = '';
+      if (method === 'UPI') {
+        const upi = document.getElementById('wdUpiId').value.trim();
+        if (!upi || !upi.includes('@')) return showToast('Enter a valid UPI ID');
+        details = 'UPI: ' + upi;
+      } else {
+        const accName = document.getElementById('wdAccName').value.trim();
+        const accNum = document.getElementById('wdAccNum').value.replace(/\D/g, '');
+        const ifsc = document.getElementById('wdIfsc').value.trim().toUpperCase();
+        if (!accName || accNum.length < 8 || ifsc.length < 8) return showToast('Enter valid Bank Account & IFSC details');
+        details = `${accName} | A/C: ${accNum} | IFSC: ${ifsc}`;
+      }
+
+      u.walletBalance = bal - amt;
+      const wd = {
+        id: 'WD' + Date.now().toString().slice(-6),
+        phone: u.phone,
+        name: u.name,
+        amount: amt,
+        method,
+        details,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.withdrawals.unshift(wd);
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_withdrawal', withdrawal: wd })
+      }).catch(() => {});
+
+      closeModal('withdrawModal');
+      renderAll();
+      renderWalletAndCoupons();
+      showToast('Withdrawal requested! Awaiting Admin approval.');
+    }
+
+    function renderRewards() {
+      const u = getCurrentUser();
+      const myClaims = u ? appState.rewards.filter(r => r.ownerPhone === u.phone || r.phone === u.phone) : [];
+      const pendingCount = myClaims.filter(r => r.status === 'Pending').length;
+      document.getElementById('rewardsPendingSub').textContent = `${pendingCount} claim(s) awaiting confirmation`;
+
+      const list = document.getElementById('rewardsList');
+      if (!myClaims.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No Partner Claims Yet</h3><p>Recharge through <b>Partner Plans</b> and tap <b>+ Claim Order</b> to earn Green Coins.</p><button class="btn-pill btn-scan" onclick="openClaimModal()">+ Submit Order ID</button></div>`;
+        return;
+      }
+      list.innerHTML = myClaims.map(r => {
+        const isApproved = r.status === 'Approved';
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge ${isApproved ? 'badge-ok' : 'badge-warn'}">${isApproved ? `🟢 CREDITED • 🌿 ${r.cashback} COINS` : '🟡 PENDING VERIFICATION'}</span>
+                <div class="plan-title">${r.operator} ₹${r.amount} • ${r.phone}</div>
+                <div class="plan-meta">Order: <b>${r.orderId}</b> • Coupon: ${r.couponCode || 'None'} (${r.date})</div>
+              </div>
+              <div class="plan-price" style="color:${isApproved ? 'var(--forest)' : 'var(--gold)'};">${isApproved ? '+🌿' + r.cashback : 'Pending'}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ================= ADMIN DASHBOARD ================= */
+    function switchAdminSubTab(tab, btn) {
+      ['coin_orders', 'coin_topups', 'claims', 'pro', 'withdrawals', 'banners', 'users'].forEach(t => {
+        document.getElementById('admin-sub-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+      btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderAdminPanel();
+    }
+
+    function renderAdminPanel() {
+      // 1. Coin Recharge Fulfillment Orders (Full plan specs so admin can recharge manually & approve)
+      const crBox = document.getElementById('admin-sub-coin_orders');
+      crBox.innerHTML = (appState.coinRecharges || []).length ? appState.coinRecharges.map(o => `
+        <div class="card" style="border-left:4px solid ${o.status === 'Completed' ? 'var(--forest)' : 'var(--gold)'};">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:800; font-size:14px;">${o.operator} ₹${o.planPrice} • ${o.targetPhone}</div>
+            <span class="badge ${o.status === 'Completed' ? 'badge-ok' : 'badge-warn'}">${o.isPro && o.status !== 'Completed' ? '★ PRO PRIORITY' : o.status}</span>
+          </div>
+          <div class="fc-specs" style="margin:8px 0;">
+            <div><div class="fc-spec-lbl">Plan</div><div class="fc-spec-val">₹${o.planPrice}</div></div>
+            <div><div class="fc-spec-lbl">Data</div><div class="fc-spec-val">${o.planData}</div></div>
+            <div><div class="fc-spec-lbl">Validity</div><div class="fc-spec-val">${o.planValidity}</div></div>
+          </div>
+          <div class="plan-meta">Benefits: <b>${o.planPerks}</b><br>Requested by: ${o.ownerName} (${o.ownerPhone}) • Paid: <b>🌿 ${o.coinsUsed} Coins</b> • ${o.date}</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn-del" style="flex:0 0 auto;" onclick="copyTextSafe('${o.targetPhone}'); showToast('Copied ${o.targetPhone}!');">Copy No.</button>
+            ${o.status !== 'Completed' ? `<button class="btn-renew" onclick="completeCoinRechargeAdmin('${o.id}')">Mark Recharged & Approve ✓</button>` : ''}
+          </div>
+        </div>`).join('') : '<div class="empty-box"><p>No Green Coin recharge orders yet.</p></div>';
+
+      // 2. Green Coin Top-Up UTR Verification
+      const ctBox = document.getElementById('admin-sub-coin_topups');
+      ctBox.innerHTML = (appState.coinTopups || []).length ? appState.coinTopups.map(t => `
+        <div class="card">
+          <div style="font-weight:800; font-size:13px;">${t.name} (${t.phone}) • Buy 🌿 ${t.coins} Coins</div>
+          <div class="plan-meta">Paid: <b>₹${t.paidAmount}</b> (Discount: ₹${t.discount}, Promo: ${t.couponCode})<br>UPI UTR: <b>${t.utr}</b> • Status: <b>${t.status}</b> (${t.date})</div>
+          ${t.status !== 'Approved' ? `<button class="btn-renew" style="margin-top:8px; width:100%;" onclick="approveCoinTopupAdmin('${t.id}')">Verify UTR & Credit 🌿 ${t.coins} Coins ✓</button>` : '<span class="badge badge-ok" style="margin-top:6px;">COINS CREDITED</span>'}
+        </div>`).join('') : '<div class="empty-box"><p>No Green Coin top-up requests yet.</p></div>';
+
+      // 3. Partner Cashback Claims
+      const cBox = document.getElementById('admin-sub-claims');
+      cBox.innerHTML = appState.rewards.length ? appState.rewards.map(r => `
+        <div class="card">
+          <div style="display:flex; justify-content:space-between;">
+            <div style="font-weight:800; font-size:13px;">${r.operator} ₹${r.amount} • ${r.phone}</div>
+            <span class="badge ${r.isPro ? 'badge-warn' : ''}">${r.isPro ? '★ PRO PRIORITY' : r.status}</span>
+          </div>
+          <div class="plan-meta">Order: <b>${r.orderId}</b> | Coupon: <b>${r.couponCode || 'None'}</b> | Status: <b>${r.status}</b></div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input type="number" id="adm_cb_${r.id}" placeholder="Green Coins" value="${r.cashback || ''}" style="padding:8px; border-radius:8px; border:1px solid var(--border); width:125px; background:var(--bg); color:var(--espresso);" />
+            <button class="btn-renew" onclick="approveClaimAdmin('${r.id}')">Credit Green Coins</button>
+          </div>
+        </div>`).join('') : '<div class="empty-box"><p>No cashback claims submitted yet.</p></div>';
+
+      // 4. Pro UTR Approvals
+      const pBox = document.getElementById('admin-sub-pro');
+      pBox.innerHTML = appState.proRequests.length ? appState.proRequests.map(r => `
+        <div class="card">
+          <div style="font-weight:800; font-size:13px;">${r.name} (${r.phone}) • ₹${r.amount}</div>
+          <div class="plan-meta">UPI UTR: <b>${r.utr}</b> • Status: <b>${r.status}</b> (${r.date})</div>
+          ${r.status !== 'Approved' ? `<button class="btn-renew" style="margin-top:8px; width:100%;" onclick="approveProAdmin('${r.id}')">Verify UTR & Activate Pro ★</button>` : '<span class="badge badge-ok" style="margin-top:6px;">PRO ACTIVATED</span>'}
+        </div>`).join('') : '<div class="empty-box"><p>No Pro UTR requests yet.</p></div>';
+
+      // 5. Wallet Withdrawals
+      const wBox = document.getElementById('admin-sub-withdrawals');
+      wBox.innerHTML = appState.withdrawals.length ? appState.withdrawals.map(w => `
+        <div class="card">
+          <div style="font-weight:800; font-size:13px;">${w.name} (${w.phone}) • Withdraw ${w.amount} Coins (₹${w.amount})</div>
+          <div class="plan-meta"><b>${w.method}:</b> ${w.details} • Status: <b>${w.status}</b></div>
+          ${w.status !== 'Approved' ? `<button class="btn-renew" style="margin-top:8px; width:100%;" onclick="approveWithdrawalAdmin('${w.id}')">Mark Paid & Approve ✓</button>` : '<span class="badge badge-ok" style="margin-top:6px;">PAID & APPROVED</span>'}
+        </div>`).join('') : '<div class="empty-box"><p>No withdrawal requests yet.</p></div>';
+
+      // 6. Banners & Coupons List
+      document.getElementById('adminBannersList').innerHTML = (appState.banners || []).map(b => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--bg); border-radius:10px; margin-bottom:6px;">
+          <div style="font-size:12px; font-weight:700;">${b.title} (${b.active ? 'Active' : 'Off'})</div>
+          <button class="btn-del" style="padding:5px 9px;" onclick="deleteAdminBanner('${b.id}')">Delete</button>
+        </div>`).join('');
+
+      document.getElementById('adminCouponsList').innerHTML = (appState.coupons || []).map(c => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--bg); border-radius:10px; margin-bottom:6px;">
+          <div style="font-size:12px; font-weight:700;"><b>${c.code}</b> (₹${c.bonus} Off / +${c.bonus} Coins on ≥₹${c.minAmount})</div>
+          <button class="btn-del" style="padding:5px 9px;" onclick="deleteAdminCoupon('${c.code}')">Remove</button>
+        </div>`).join('');
+
+      // 7. Registered Users Directory
+      const uBox = document.getElementById('admin-sub-users');
+      uBox.innerHTML = appState.users.length ? appState.users.map(u => `
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:800; font-size:14px;">${u.name} • ${u.phone}</div>
+            <span class="badge ${u.isPro ? 'badge-ok' : ''}">${u.isPro ? '★ PRO' : 'FREE'}</span>
+          </div>
+          <div class="plan-meta">Operator: <b>${u.operator}</b> | Balance: <b>🌿 ${u.walletBalance || 0} Coins</b> | Joined: ${u.joinedAt || 'N/A'}</div>
+        </div>`).join('') : '<div class="empty-box"><p>No users registered yet.</p></div>';
+    }
+
+    function completeCoinRechargeAdmin(id) {
+      const order = (appState.coinRecharges || []).find(o => o.id === id);
+      if (!order) return;
+      order.status = 'Completed';
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'complete_coin_recharge', id })
+      }).catch(() => {});
+      renderAdminPanel();
+      showToast(`Recharge ₹${order.planPrice} for ${order.targetPhone} marked Completed!`);
+    }
+
+    function approveCoinTopupAdmin(id) {
+      const topup = (appState.coinTopups || []).find(t => t.id === id);
+      if (!topup || topup.status === 'Approved') return;
+      topup.status = 'Approved';
+      const targetUser = appState.users.find(u => u.phone === topup.phone);
+      if (targetUser) {
+        targetUser.walletBalance = (targetUser.walletBalance || 0) + topup.coins;
+      }
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve_coin_topup', id, phone: topup.phone, coins: topup.coins })
+      }).catch(() => {});
+      renderAdminPanel();
+      showToast(`Credited 🌿 ${topup.coins} Green Coins to ${topup.phone}!`);
+    }
+
+    function approveClaimAdmin(id) {
+      const val = parseFloat(document.getElementById('adm_cb_' + id).value);
+      if (isNaN(val) || val < 0) return showToast('Enter valid Green Coins amount');
+      const item = appState.rewards.find(r => r.id === id);
+      if (!item) return;
+
+      const prevCredit = item.status === 'Approved' ? (parseFloat(item.cashback) || 0) : 0;
+      item.cashback = val;
+      item.status = 'Approved';
+
+      const targetUser = appState.users.find(u => u.phone === (item.ownerPhone || item.phone));
+      if (targetUser) {
+        targetUser.walletBalance = (targetUser.walletBalance || 0) - prevCredit + val;
+      }
+
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve', id, cashback: val })
+      }).catch(() => {});
+      renderAdminPanel();
+      showToast(`Credited 🌿 ${val} Green Coins to user's Wallet!`);
+    }
+
+    function approveProAdmin(id) {
+      const req = appState.proRequests.find(r => r.id === id);
+      if (!req) return;
+      req.status = 'Approved';
+      const targetUser = appState.users.find(u => u.phone === req.phone);
+      if (targetUser) targetUser.isPro = true;
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve_pro', id, phone: req.phone })
+      }).catch(() => {});
+      renderAdminPanel();
+      showToast(`Pro activated for ${req.phone}!`);
+    }
+
+    function approveWithdrawalAdmin(id) {
+      const wd = appState.withdrawals.find(w => w.id === id);
+      if (!wd) return;
+      wd.status = 'Approved';
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve_withdrawal', id })
+      }).catch(() => {});
+      renderAdminPanel();
+      showToast(`Withdrawal ₹${wd.amount} marked Paid!`);
+    }
+
+    function handleBannerFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('admBannerUrl').value = e.target.result;
+        showToast('Image loaded! Tap Publish Active Banner.');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveAdminBanner() {
+      const title = document.getElementById('admBannerTitle').value.trim() || 'Exclusive PlanPulse Offer';
+      const imageUrl = document.getElementById('admBannerUrl').value.trim();
+      if (!imageUrl) return showToast('Select an image or paste an image URL');
+
+      appState.banners.forEach(b => b.active = false);
+      appState.banners.unshift({ id: 'bnr_' + Date.now(), title, imageUrl, active: true });
+      saveState();
+      document.getElementById('admBannerTitle').value = '';
+      document.getElementById('admBannerUrl').value = '';
+      renderAdminPanel();
+      showToast('Login banner published!');
+    }
+
+    function deleteAdminBanner(id) {
+      appState.banners = appState.banners.filter(b => b.id !== id);
+      saveState();
+      renderAdminPanel();
+    }
+
+    function saveAdminCoupon() {
+      const code = document.getElementById('admCouponCode').value.trim().toUpperCase();
+      const bonus = parseFloat(document.getElementById('admCouponAmt').value);
+      const minAmount = parseFloat(document.getElementById('admCouponMin').value) || 0;
+      if (!code || !bonus || bonus <= 0) return showToast('Enter valid coupon code & value');
+      appState.coupons.unshift({ code, bonus, minAmount, active: true });
+      saveState();
+      document.getElementById('admCouponCode').value = '';
+      document.getElementById('admCouponAmt').value = '';
+      renderAdminPanel();
+      showToast(`Coupon ${code} created!`);
+    }
+
+    function deleteAdminCoupon(code) {
+      appState.coupons = appState.coupons.filter(c => c.code !== code);
+      saveState();
+      renderAdminPanel();
+    }
+
+    async function syncAllCloudData() {
+      try {
+        const res = await fetch(SHEETS_API_URL);
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.claims)) {
+          json.claims.forEach(cloudC => {
+            const localC = appState.rewards.find(r => r.id === cloudC.id);
+            if (localC && localC.status !== 'Approved' && cloudC.status === 'Approved') {
+              localC.status = 'Approved';
+              localC.cashback = parseFloat(cloudC.cashback) || 0;
+              const u = appState.users.find(x => x.phone === (localC.ownerPhone || localC.phone));
+              if (u) u.walletBalance = (u.walletBalance || 0) + localC.cashback;
+            }
+          });
+          saveState();
+          renderAll();
+        }
+      } catch (e) {}
+    }
+
+    /* ================= PROFILE EDIT, VAULT & NAVIGATION ================= */
+    function openEditProfileModal() {
+      const u = getCurrentUser();
+      if (!u) return;
+      document.getElementById('epPhoneLocked').value = u.phone + ' (Permanent ID)';
+      document.getElementById('epName').value = u.name;
+      document.getElementById('epOp').value = u.operator;
+      document.getElementById('epPin').value = u.pin;
+      openModal('editProfileModal');
+    }
+
+    function saveProfileUpdates() {
+      const u = getCurrentUser();
+      if (!u) return;
+      const name = document.getElementById('epName').value.trim();
+      const op = document.getElementById('epOp').value;
+      const pin = document.getElementById('epPin').value.replace(/\D/g, '');
+      if (!name) return showToast('Name cannot be empty');
+      if (pin.length !== 4) return showToast('PIN must be 4 digits');
+      u.name = name;
+      u.operator = op;
+      u.pin = pin;
+      saveState();
+      closeModal('editProfileModal');
+      renderAll();
+      showToast('Profile updated!');
+    }
+
+    function setFilter(filter, btn) {
+      appState.currentFilter = filter;
+      document.querySelectorAll('#tab-tracker .chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlans();
+    }
+
+    function switchTab(tab, btn) {
+      ['tracker', 'history', 'recharge', 'profile'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      if (tab === 'recharge') { renderRechargeCatalog(); renderCoinRechargeCatalog(); }
+      if (tab === 'history') renderHistory();
+      if (tab === 'profile' && isAdminSession()) renderAdminPanel();
+    }
+
+    function openVaultModal() {
+      const u = getCurrentUser();
+      if (!u && !isAdminSession()) return;
+      document.getElementById('vaultPinInput').value = '';
+      document.getElementById('vaultDesc').textContent = appState.vaultLocked
+        ? 'Vault is LOCKED. Enter your 4-digit PIN to reveal amounts & phone number.'
+        : 'Vault is UNLOCKED. Enter your 4-digit PIN to lock sensitive figures.';
+      openModal('vaultModal');
+    }
+
+    function verifyVaultPin() {
+      const u = getCurrentUser();
+      const expectedPin = isAdminSession() ? '9999' : (u ? u.pin : '');
+      if (document.getElementById('vaultPinInput').value === expectedPin) {
+        appState.vaultLocked = !appState.vaultLocked;
+        saveState();
+        closeModal('vaultModal');
+        renderAll();
+        showToast(appState.vaultLocked ? 'Vault Locked 🔒' : 'Vault Unlocked 🔓');
+      } else { showToast('Incorrect PIN'); }
+    }
+
+    function exportCSV() {
+      const u = getCurrentUser();
+      const myPlans = u ? appState.plans.filter(p => p.ownerPhone === u.phone) : appState.plans;
+      if (!myPlans.length) return showToast('No plans to export yet');
+      let csv = 'Plan,Category,Amount,DaysLeft,Source\n';
+      myPlans.forEach(p => { csv += `"${p.name}",${p.category},${p.amount},${p.daysLeft},"${p.source}"\n`; });
+      copyTextSafe(csv);
+      showToast('Plan report copied to clipboard!');
+    }
+
+    function mask(val) { return appState.vaultLocked ? '••••' : val; }
+
+    function renderPlans() {
+      const list = document.getElementById('plansList');
+      const u = getCurrentUser();
+      let filtered = u ? appState.plans.filter(p => p.ownerPhone === u.phone) : [];
+      if (appState.currentFilter === 'telecom') filtered = filtered.filter(p => p.category === 'telecom');
+      if (appState.currentFilter === 'ott') filtered = filtered.filter(p => p.category === 'ott');
+      if (appState.currentFilter === 'expiring') filtered = filtered.filter(p => p.daysLeft <= 5);
+
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No Active Plans Found</h3><p>Tap <b>🔔 Scan</b> above to auto-detect your recharge SMS, or add a plan manually.</p><button class="btn-pill btn-scan" onclick="runRealSmsScan()">Scan My Recharge SMS</button></div>`;
+        return;
+      }
+      list.innerHTML = filtered.map(p => {
+        const pct = Math.max(5, Math.min(100, Math.round((p.daysLeft / (p.totalDays || 28)) * 100)));
+        const badgeClass = p.daysLeft <= 3 ? 'badge-danger' : (p.daysLeft <= 7 ? 'badge-warn' : 'badge-ok');
+        const targetPhone = u ? u.phone : 'Your Number';
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge">${p.category.toUpperCase()}</span>
+                <span style="font-size:11px; color:var(--muted); margin-left:6px;">${p.source}</span>
+                <div class="plan-title">${p.name}</div>
+                <div class="plan-meta">For: ${mask(targetPhone)}</div>
+              </div>
+              <div>
+                <span class="badge ${badgeClass}">${p.daysLeft}d left</span>
+                <div class="plan-price">${mask('₹' + p.amount)}</div>
+              </div>
+            </div>
+            <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;"></div></div>
+            <div class="card-actions">
+              <button class="btn-renew" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">Renew on ${mask(targetPhone)} →</button>
+              <button class="btn-del" onclick="deletePlan('${p.id}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      const u = getCurrentUser();
+      const myHist = u ? appState.history.filter(h => h.ownerPhone === u.phone) : [];
+      const total = myHist.reduce((s, h) => s + (parseFloat(h.amount) || 0), 0);
+      document.getElementById('historyTotalBig').textContent = mask('₹' + total);
+      if (!myHist.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No App Recharges Yet</h3><p>Recharges logged through PlanPulse appear here.</p></div>`;
+        return;
+      }
+      list.innerHTML = myHist.map(h => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="badge">${h.source}</span>
+            <div style="font-weight:800; font-size:15px; margin-top:5px;">${h.title}</div>
+            <div style="font-size:12px; color:var(--muted);">Order: ${h.orderId || 'N/A'} • ${h.date}</div>
+          </div>
+          <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + h.amount)}</span>
+        </div>`).join('');
+    }
+
+    function renderAll() {
+      applyTheme(appState.theme || 'cream');
+      if (!appState.session) {
+        document.getElementById('authScreen').style.display = 'flex';
+        return;
+      }
+      document.getElementById('authScreen').style.display = 'none';
+
+      const adminMode = isAdminSession();
+      const u = getCurrentUser();
+
+      document.getElementById('regularProfileView').style.display = adminMode ? 'none' : 'block';
+      document.getElementById('adminDashboardView').style.display = adminMode ? 'block' : 'none';
+      document.getElementById('navAccountLabel').textContent = adminMode ? 'Admin' : 'Account';
+
+      if (adminMode) {
+        document.getElementById('topAvatar').textContent = '🛡️';
+        document.getElementById('userBadge').textContent = 'Admin Mode';
+        document.getElementById('proBtn').style.display = 'none';
+        renderAdminPanel();
+        return;
+      }
+
+      document.getElementById('proBtn').style.display = 'inline-flex';
+      if (u) {
+        const maskedPhone = appState.vaultLocked ? '••••••' + u.phone.slice(-4) : u.phone;
+        document.getElementById('topAvatar').textContent = (u.name || 'U')[0].toUpperCase();
+        document.getElementById('userBadge').textContent = `${u.name.split(' ')[0]} • ${maskedPhone}`;
+        document.getElementById('profileSummary').textContent = `${u.name} | ${u.operator} (${u.phone})`;
+        document.getElementById('fcPhoneInput').value = u.phone;
+        document.getElementById('fcOpSelect').value = u.operator;
+        document.getElementById('crPhoneInput').value = u.phone;
+        document.getElementById('crOpSelect').value = u.operator;
+        document.getElementById('proBtn').textContent = u.isPro ? '★ Pro Active' : '★ Pro ₹49';
+        document.getElementById('accProStatusBadge').textContent = u.isPro ? '★ PRO MEMBER' : 'STANDARD';
+        document.getElementById('upgradeCardProfile').style.display = u.isPro ? 'none' : 'block';
+        document.getElementById('proInsightsBanner').style.display = u.isPro ? 'block' : 'none';
+        document.getElementById('statWalletHero').textContent = mask('🌿 ' + (u.walletBalance || 0));
+
+        if (window.AndroidAdBridge && window.AndroidAdBridge.setProStatus) {
+          window.AndroidAdBridge.setProStatus(!!u.isPro);
+        }
+
+        const myPlans = appState.plans.filter(p => p.ownerPhone === u.phone);
+        const monthlyBurn = myPlans.reduce((sum, p) => sum + Math.round((p.amount / (p.totalDays || 28)) * 30), 0);
+        const dailyBurn = (monthlyBurn / 30).toFixed(1);
+        const expiringCount = myPlans.filter(p => p.daysLeft <= 5).length;
+
+        document.getElementById('burnRate').textContent = mask('₹' + monthlyBurn);
+        document.getElementById('burnSub').textContent = `≈ ₹${appState.vaultLocked ? '••' : dailyBurn}/day across ${myPlans.length} active plan(s)`;
+        document.getElementById('statActive').textContent = myPlans.length;
+        document.getElementById('statExpiring').textContent = expiringCount;
+      }
+
+      document.getElementById('vaultBtn').textContent = appState.vaultLocked ? '🔒' : '🔓';
+      renderPlans();
+      renderHistory();
+      renderRechargeCatalog();
+      renderCoinRechargeCatalog();
+      renderRewards();
+    }
+
+    renderAll();
+    if (appState.session && !isAdminSession()) {
+      syncAllCloudData();
+    }
+  </script>
+</body>
+</html>
