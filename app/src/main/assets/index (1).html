@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PlanPulse</title>
+  <style>
+    :root {
+      --bg: #FAF6F0;
+      --card: #FFFFFF;
+      --forest: #1B4332;
+      --forest-light: #2D6A4F;
+      --espresso: #2C1E16;
+      --muted: #7A6B63;
+      --border: #E8DFD3;
+      --gold: #D97706;
+      --gold-bg: #FEF3C7;
+      --danger: #DC2626;
+      --danger-bg: #FEE2E2;
+      --ok-bg: #DCFCE7;
+      --ok-text: #166534;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--espresso); padding-bottom: 84px; overflow-x: hidden; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--bg); position: sticky; top: 0; z-index: 20; border-bottom: 1px solid var(--border); gap: 8px; }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .logo-badge { width: 34px; height: 34px; border-radius: 10px; background: var(--forest); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
+    .user-pill { font-size: 11px; background: #EFE7DC; color: var(--espresso); padding: 4px 9px; border-radius: 99px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); }
+    .top-actions { display: flex; align-items: center; gap: 6px; }
+    .btn-pill { border: none; border-radius: 99px; padding: 7px 11px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-pro { background: var(--gold-bg); color: var(--gold); }
+    .btn-scan { background: var(--forest); color: #fff; }
+    .btn-lock { background: #fff; border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; }
+    .container { padding: 14px 16px; max-width: 540px; margin: 0 auto; }
+    .hero { background: linear-gradient(145deg, var(--forest), #122E22); color: #fff; border-radius: 22px; padding: 18px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(27,67,50,0.16); }
+    .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .hero-label { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; opacity: 0.8; font-weight: 700; }
+    .hero-amount { font-size: 32px; font-weight: 800; margin: 4px 0; }
+    .hero-sub { font-size: 12px; opacity: 0.85; }
+    .hero-btns { display: flex; flex-direction: column; gap: 7px; }
+    .btn-add { background: #fff; color: var(--forest); border: none; border-radius: 12px; padding: 9px 13px; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .btn-csv { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.22); border-radius: 12px; padding: 7px 12px; font-weight: 600; font-size: 11px; cursor: pointer; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+    .stat-box { background: rgba(255,255,255,0.1); border-radius: 14px; padding: 10px 8px; text-align: center; }
+    .stat-title { font-size: 11px; opacity: 0.85; line-height: 1.25; }
+    .stat-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
+    .seg-bar { display: flex; background: #EFE7DC; border-radius: 14px; padding: 4px; margin-bottom: 14px; border: 1px solid var(--border); }
+    .seg-btn { flex: 1; border: none; background: transparent; padding: 9px; border-radius: 11px; font-size: 13px; font-weight: 800; color: var(--muted); cursor: pointer; }
+    .seg-btn.active { background: #fff; color: var(--forest); box-shadow: 0 2px 6px rgba(44,30,22,0.08); }
+    .fc-number-box { background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
+    .fc-row { display: flex; gap: 8px; align-items: center; }
+    .fc-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; font-weight: 800; background: #FAF6F0; color: var(--espresso); }
+    .fc-select { padding: 10px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; font-weight: 800; background: #EDF5F0; color: var(--forest); }
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+    .filters::-webkit-scrollbar { display: none; }
+    .chip { background: #fff; border: 1px solid var(--border); color: var(--espresso); padding: 8px 14px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .chip.active { background: var(--espresso); color: #fff; border-color: var(--espresso); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(44,30,22,0.04); }
+    .card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: #EFE7DC; color: var(--espresso); }
+    .badge-warn { background: var(--gold-bg); color: var(--gold); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-ok { background: var(--ok-bg); color: var(--ok-text); }
+    .plan-title { font-size: 16px; font-weight: 800; margin-top: 6px; }
+    .plan-meta { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .plan-price { font-size: 19px; font-weight: 800; text-align: right; color: var(--espresso); }
+    .fc-specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #FAF6F0; border-radius: 12px; padding: 9px; margin: 10px 0; text-align: center; }
+    .fc-spec-lbl { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+    .fc-spec-val { font-size: 13px; font-weight: 800; color: var(--espresso); margin-top: 2px; }
+    .progress-bg { height: 6px; background: #EFE7DC; border-radius: 99px; overflow: hidden; margin: 12px 0; }
+    .progress-fill { height: 100%; background: var(--forest); border-radius: 99px; }
+    .card-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-renew { flex: 1; background: var(--forest); color: #fff; border: none; border-radius: 11px; padding: 10px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-del { background: #FAF6F0; color: var(--danger); border: 1px solid var(--border); border-radius: 11px; padding: 9px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .empty-box { text-align: center; background: #fff; border: 1px dashed var(--border); border-radius: 18px; padding: 28px 18px; margin-top: 8px; }
+    .empty-box h3 { font-size: 16px; margin-bottom: 6px; }
+    .empty-box p { font-size: 13px; color: var(--muted); line-height: 1.45; margin-bottom: 14px; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 4px; z-index: 25; }
+    .nav-item { flex: 1; border: none; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px; border-radius: 12px; cursor: pointer; }
+    .nav-item.active { color: var(--forest); background: #EDF5F0; }
+    .overlay { position: fixed; inset: 0; background: rgba(44,30,22,0.65); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
+    .overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 22px; padding: 20px; width: 100%; max-width: 410px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { font-size: 19px; margin-bottom: 6px; color: var(--espresso); }
+    .modal p { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    .field input, .field select { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; background: #FAF6F0; color: var(--espresso); }
+    .btn-full { width: 100%; background: var(--forest); color: #fff; border: none; border-radius: 13px; padding: 13px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 4px; }
+    .btn-secondary { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 13px; padding: 10px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .toast { position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%); background: var(--espresso); color: #fff; padding: 10px 16px; border-radius: 99px; font-size: 12px; font-weight: 600; z-index: 99; display: none; white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-badge">⚡</div>
+      <div class="user-pill" id="userBadge" onclick="openRegisterModal(true)">Register Number</div>
+    </div>
+    <div class="top-actions">
+      <button class="btn-pill btn-pro" id="proBtn" onclick="openModal('proModal')">★ Pro ₹49</button>
+      <button class="btn-pill btn-scan" onclick="runRealSmsScan()">🔔 Auto-Detect</button>
+      <button class="btn-lock" id="vaultBtn" onclick="openVaultModal()" title="Vault">🔒</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TAB 1: TRACKER -->
+    <section id="tab-tracker">
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">Monthly Burn Rate</div>
+            <div class="hero-amount" id="burnRate">₹0</div>
+            <div class="hero-sub" id="burnSub">≈ ₹0/day across 0 active plans</div>
+          </div>
+          <div class="hero-btns">
+            <button class="btn-add" onclick="openModal('addPlanModal')">+ Add Plan</button>
+            <button class="btn-csv" onclick="exportCSV()">Export CSV ↗</button>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-box"><div class="stat-title">Active<br>Plans</div><div class="stat-val" id="statActive">0</div></div>
+          <div class="stat-box"><div class="stat-title">Expiring<br>≤5d</div><div class="stat-val" style="color:#FBBF24;" id="statExpiring">0</div></div>
+          <div class="stat-box"><div class="stat-title">Past<br>Recharges</div><div class="stat-val" style="color:#6EE7B7;" id="statHistoryCount">0</div></div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <button class="chip active" onclick="setFilter('all', this)">All Plans</button>
+        <button class="chip" onclick="setFilter('telecom', this)">Mobile & Fiber</button>
+        <button class="chip" onclick="setFilter('ott', this)">OTT & Music</button>
+        <button class="chip" onclick="setFilter('expiring', this)">Expiring Soon</button>
+      </div>
+      <div id="plansList"></div>
+    </section>
+
+    <!-- TAB 2: RECHARGE HISTORY -->
+    <section id="tab-history" style="display:none;">
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; color:var(--muted); font-weight:700;">APP RECHARGE SPEND</div>
+          <div style="font-size:24px; font-weight:800; color:var(--forest);" id="historyTotalBig">₹0</div>
+        </div>
+        <button class="btn-pill btn-scan" onclick="switchTab('recharge', document.querySelectorAll('.nav-item')[2])">+ New Recharge</button>
+      </div>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- TAB 3: RECHARGE & CHECK REWARDS -->
+    <section id="tab-recharge" style="display:none;">
+      <div class="seg-bar">
+        <button class="seg-btn active" id="segPlansBtn" onclick="switchRechargeSubTab('plans')">⚡ Browse Plans</button>
+        <button class="seg-btn" id="segRewardsBtn" onclick="switchRechargeSubTab('rewards')">🎁 Check Rewards</button>
+      </div>
+
+      <div id="recharge-sub-plans">
+        <div class="fc-number-box">
+          <div style="font-size:11px; font-weight:800; color:var(--muted); margin-bottom:6px; text-transform:uppercase;">Recharging Mobile Number</div>
+          <div class="fc-row">
+            <input type="tel" id="fcPhoneInput" class="fc-input" maxlength="10" placeholder="10-digit number" />
+            <select id="fcOpSelect" class="fc-select" onchange="renderRechargeCatalog()">
+              <option value="Jio">Jio</option>
+              <option value="Airtel">Airtel</option>
+              <option value="Vi">Vi</option>
+              <option value="BSNL">BSNL</option>
+            </select>
+          </div>
+          <div style="font-size:11px; color:var(--forest); font-weight:700; margin-top:8px;">
+            💡 Recharge via our partner checkout & submit your Order ID in "Check Rewards" to claim verified cashback!
+          </div>
+        </div>
+
+        <div class="filters">
+          <button class="chip active" onclick="setCatalogFilter('popular', this)">Popular 5G</button>
+          <button class="chip" onclick="setCatalogFilter('quarterly', this)">84 Days Value</button>
+          <button class="chip" onclick="setCatalogFilter('annual', this)">Annual (365d)</button>
+          <button class="chip" onclick="setCatalogFilter('addon', this)">Data & Voice</button>
+        </div>
+        <div id="rechargeCatalogList"></div>
+      </div>
+
+      <div id="recharge-sub-rewards" style="display:none;">
+        <div class="hero" style="margin-bottom:14px;">
+          <div class="hero-top">
+            <div>
+              <div class="hero-label">Verified Cashback Earned</div>
+              <div class="hero-amount" id="rewardsApprovedTotal">₹0</div>
+              <div class="hero-sub" id="rewardsPendingSub">0 claim(s) awaiting confirmation</div>
+            </div>
+            <div class="hero-btns">
+              <button class="btn-add" onclick="openClaimModal()">+ Claim Order</button>
+            </div>
+          </div>
+        </div>
+        <div id="rewardsList"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ACCOUNT & ADMIN -->
+    <section id="tab-profile" style="display:none;">
+      <div class="card">
+        <h3 style="font-size:16px; margin-bottom:6px;">Registered Account</h3>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;" id="profileSummary">Not registered yet</p>
+        <button class="btn-full" onclick="openRegisterModal(true)">Edit Mobile Number & Operator</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px; margin-bottom:6px;">🛡️ Cashback Admin Approval</h3>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Approve user recharge claims and edit final cashback ₹ once Cuelinks confirms.</p>
+        <button class="btn-renew" style="width:100%;" onclick="openAdminModal()">Open Admin Approval Panel</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px; margin-bottom:6px;">Reset All Local Data</h3>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Clear all plans, rewards, and registered info from this device.</p>
+        <button class="btn-del" style="width:100%;" onclick="resetAppCompletely()">Reset App to Fresh State</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('tracker', this)">🏠<span>Tracker</span></button>
+    <button class="nav-item" onclick="switchTab('history', this)">📜<span>History</span></button>
+    <button class="nav-item" onclick="switchTab('recharge', this)">⚡<span>Recharge</span></button>
+    <button class="nav-item" onclick="switchTab('profile', this)">👤<span>Account</span></button>
+  </nav>
+
+  <!-- MODALS -->
+  <div class="overlay" id="registerModal">
+    <div class="modal">
+      <h2>Welcome to PlanPulse ⚡</h2>
+      <p>Register your mobile number so PlanPulse can auto-detect your real recharge SMS and pre-fill your number for recharges.</p>
+      <div class="field"><label>Your Name</label><input type="text" id="regName" placeholder="e.g. Aman" /></div>
+      <div class="field"><label>10-Digit Mobile Number</label><input type="tel" id="regPhone" maxlength="10" placeholder="e.g. 9876543210" /></div>
+      <div class="field"><label>Primary Operator</label>
+        <select id="regOperator"><option value="Jio">Jio</option><option value="Airtel">Airtel</option><option value="Vi">Vi (Vodafone Idea)</option><option value="BSNL">BSNL</option></select>
+      </div>
+      <div class="field"><label>Set 4-Digit Vault PIN</label><input type="password" id="regPin" maxlength="4" inputmode="numeric" placeholder="e.g. 2580" /></div>
+      <button class="btn-full" onclick="saveRegistration()">Save & Scan My SMS Plans</button>
+      <button class="btn-secondary" id="regCancelBtn" style="display:none;" onclick="closeModal('registerModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="checkoutModal">
+    <div class="modal">
+      <h2 id="coTitle">Jio ₹349 Recharge</h2>
+      <p id="coSubtitle">Number copied! Choose an app you already use to complete payment, then log your Order ID for cashback.</p>
+      <div class="fc-specs" style="margin-bottom:14px;">
+        <div><div class="fc-spec-lbl">Number</div><div class="fc-spec-val" id="coPhone">9876543210</div></div>
+        <div><div class="fc-spec-lbl">Validity</div><div class="fc-spec-val" id="coValidity">28 Days</div></div>
+        <div><div class="fc-spec-lbl">Est. Cashback</div><div class="fc-spec-val" style="color:var(--forest);" id="coEstCb">₹5–₹15</div></div>
+      </div>
+      <button class="btn-full" onclick="proceedToPartner('paytm')">1A. Pay via Paytm (No New Signup) ↗</button>
+      <button class="btn-full" style="background:var(--espresso); margin-top:8px;" onclick="proceedToPartner('amazon')">1B. Pay via Amazon Pay ↗</button>
+      <button class="btn-full" style="background:var(--forest-light); margin-top:8px;" onclick="proceedToPartner('operator')">1C. Pay via Operator App (MyJio / Vi) ↗</button>
+      <button class="btn-secondary" style="color:var(--forest); border-color:var(--forest); margin-top:12px;" onclick="switchToClaimFromCheckout()">2. Already Paid? Log Order for Cashback ✓</button>
+      <button class="btn-secondary" onclick="closeModal('checkoutModal')">Close</button>
+    </div>
+  </div>
+  
+  <div class="overlay" id="claimModal">
+    <div class="modal">
+      <h2>🎁 Claim Recharge Cashback</h2>
+      <p>Enter your recharge details. Status starts as <b>Pending</b> and turns <b>Approved</b> once verified.</p>
+      <div class="field"><label>Recharged Mobile Number</label><input type="tel" id="claimPhone" maxlength="10" placeholder="10-digit number" /></div>
+      <div class="field"><label>Plan Amount (₹)</label><input type="number" id="claimAmount" placeholder="e.g. 349" /></div>
+      <div class="field"><label>Partner Order / Transaction ID</label><input type="text" id="claimOrderId" placeholder="e.g. FC98273645" /></div>
+      <div class="field"><label>Your UPI ID (to receive cashback)</label><input type="text" id="claimUpi" placeholder="e.g. aman@ybl" /></div>
+      <button class="btn-full" onclick="submitRewardClaim()">Submit Claim (Pending)</button>
+      <button class="btn-secondary" onclick="closeModal('claimModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="adminModal">
+    <div class="modal">
+      <h2>🛡️ Admin Cashback Manager</h2>
+      <p>Enter Admin PIN (default: <b>9999</b>) to edit cashback amounts and approve pending rewards.</p>
+      <div id="adminLockBox">
+        <div class="field"><input type="password" id="adminPinInput" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; font-size:22px; letter-spacing:8px;" /></div>
+        <button class="btn-full" onclick="unlockAdminPanel()">Unlock Admin Panel</button>
+      </div>
+      <div id="adminContentBox" style="display:none;"><div id="adminClaimsList"></div></div>
+      <button class="btn-secondary" onclick="closeModal('adminModal')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="addPlanModal">
+    <div class="modal">
+      <h2>Add Active Plan</h2>
+      <p>Track a mobile recharge, fiber broadband, or OTT subscription.</p>
+      <div class="field"><label>Plan / Service Name</label><input type="text" id="planName" placeholder="e.g. Jio ₹349 Unlimited 5G" /></div>
+      <div class="field"><label>Category</label><select id="planCategory"><option value="telecom">Mobile & Fiber</option><option value="ott">OTT & Music</option></select></div>
+      <div class="field"><label>Amount Paid (₹)</label><input type="number" id="planAmount" placeholder="349" /></div>
+      <div class="field"><label>Remaining Days</label><input type="number" id="planDays" value="28" /></div>
+      <button class="btn-full" onclick="addManualPlan()">Save Plan</button>
+      <button class="btn-secondary" onclick="closeModal('addPlanModal')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="vaultModal">
+    <div class="modal">
+      <h2>🔒 Privacy Vault</h2>
+      <p id="vaultDesc">Enter your 4-digit PIN to lock/unlock sensitive details.</p>
+      <div class="field"><input type="password" id="vaultPinInput" maxlength="4" inputmode="numeric" placeholder="••••" style="text-align:center; font-size:22px; letter-spacing:8px;" /></div>
+      <button class="btn-full" onclick="verifyVaultPin()">Confirm</button>
+      <button class="btn-secondary" onclick="closeModal('vaultModal')">Close</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="proModal">
+    <div class="modal">
+      <h2>★ Upgrade to PlanPulse Pro (₹49)</h2>
+      <p>Unlock priority cashback approvals and unlimited SMS history scans.</p>
+      <button class="btn-full" onclick="payForPro()">Pay ₹49 via UPI</button>
+      <button class="btn-secondary" onclick="activateProTest()">I Have Paid — Unlock Pro</button>
+      <button class="btn-secondary" onclick="closeModal('proModal')">Maybe Later</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script>
+    const STORAGE_KEY = 'planpulse_prod_v2';
+    const ADMIN_PIN = '9999';
+    const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbynln2eJ6TJBxb2uor0mkVs5MdjM9VDm55ORioJIBXPGkL0IVXqlmtzUcxKJj1ATGVw/exec';
+
+    const PARTNER_RECHARGE_URLS = {
+      paytm: 'https://paytm.com/recharge',
+      amazon: 'https://www.amazon.in/hfc/mobileRecharge',
+      Jio: 'https://www.jio.com/selfcare/recharge/mobility/',
+      Airtel: 'https://www.airtel.in/recharge-online',
+      Vi: 'https://www.myvi.in/prepaid/online-mobile-recharge',
+      BSNL: 'https://portal2.bsnl.in/myportal/quickrecharge.do'
+    };
+
+    const RECHARGE_CATALOG = {
+      Jio: [
+        { id: 'j349', cat: 'popular', price: 349, data: '2 GB/day', validity: '28 Days', perks: 'Unlimited 5G + JioTV & JioCloud', prob: 88, cbRange: '₹5–₹15' },
+        { id: 'j399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + JioCinema & JioTV', prob: 85, cbRange: '₹6–₹18' },
+        { id: 'j949', cat: 'quarterly', price: 949, data: '2 GB/day', validity: '84 Days', perks: 'Unlimited 5G + JioHotstar Mobile', prob: 92, cbRange: '₹15–₹35' },
+        { id: 'j3599', cat: 'annual', price: 3599, data: '2.5 GB/day', validity: '365 Days', perks: 'Unlimited 5G + 120GB Bonus Data', prob: 95, cbRange: '₹45–₹90' },
+        { id: 'j19', cat: 'addon', price: 19, data: '1 GB Total', validity: '1 Day', perks: 'High-Speed Data Booster', prob: 70, cbRange: '₹1–₹3' },
+        { id: 'j177', cat: 'addon', price: 177, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', prob: 80, cbRange: '₹3–₹8' }
+      ],
+      Airtel: [
+        { id: 'a349', cat: 'popular', price: 349, data: '1.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Free Hellotunes', prob: 86, cbRange: '₹5–₹15' },
+        { id: 'a399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Airtel Xstream Play', prob: 85, cbRange: '₹6–₹18' },
+        { id: 'a979', cat: 'quarterly', price: 979, data: '2 GB/day', validity: '84 Days', perks: 'Unlimited 5G + SonyLIV & Xstream', prob: 91, cbRange: '₹15–₹35' },
+        { id: 'a3599', cat: 'annual', price: 3599, data: '2 GB/day', validity: '365 Days', perks: 'Unlimited 5G + Apollo 24/7 Circle', prob: 95, cbRange: '₹45–₹90' },
+        { id: 'a22', cat: 'addon', price: 22, data: '1 GB Total', validity: '1 Day', perks: '1-Day Data Booster Pack', prob: 70, cbRange: '₹1–₹3' },
+        { id: 'a185', cat: 'addon', price: 185, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', prob: 80, cbRange: '₹3–₹8' }
+      ],
+      Vi: [
+        { id: 'v349', cat: 'popular', price: 349, data: '1.5 GB/day', validity: '28 Days', perks: 'Unlimited 5G + Binge All Night', prob: 87, cbRange: '₹5–₹15' },
+        { id: 'v399', cat: 'popular', price: 399, data: '2.5 GB/day', validity: '28 Days', perks: 'Weekend Data Rollover + 5G', prob: 85, cbRange: '₹6–₹18' },
+        { id: 'v979', cat: 'quarterly', price: 979, data: '2 GB/day', validity: '84 Days', perks: 'Vi Movies & TV + Night Unlimited', prob: 91, cbRange: '₹15–₹35' },
+        { id: 'v3599', cat: 'annual', price: 3599, data: '2 GB/day', validity: '365 Days', perks: 'Half-Day Unlimited + Weekend Rollover', prob: 95, cbRange: '₹45–₹90' },
+        { id: 'v23', cat: 'addon', price: 23, data: '1 GB Total', validity: '1 Day', perks: '1-Day Data Booster Pack', prob: 70, cbRange: '₹1–₹3' },
+        { id: 'v185', cat: 'addon', price: 185, data: 'No Data', validity: '28 Days', perks: 'Unlimited Voice + 100 SMS/day', prob: 80, cbRange: '₹3–₹8' }
+      ],
+      BSNL: [
+        { id: 'b225', cat: 'popular', price: 225, data: '2.5 GB/day', validity: '30 Days', perks: 'Unlimited Calls + 100 SMS/day', prob: 85, cbRange: '₹4–₹10' },
+        { id: 'b498', cat: 'quarterly', price: 498, data: '1.5 GB/day', validity: '82 Days', perks: 'Unlimited Calls + 100 SMS/day', prob: 90, cbRange: '₹8–₹20' },
+        { id: 'b2449', cat: 'annual', price: 2449, data: '2 GB/day', validity: '365 Days', perks: 'Best Value Annual 4G Pack', prob: 94, cbRange: '₹30–₹65' },
+        { id: 'b19', cat: 'addon', price: 19, data: '2 GB Total', validity: '1 Day', perks: '1-Day Data Booster', prob: 70, cbRange: '₹1–₹3' }
+      ]
+    };
+
+    function getDefaultState() {
+      return {
+        user: null,
+        pin: null,
+        vaultLocked: false,
+        isPro: false,
+        currentFilter: 'all',
+        catalogFilter: 'popular',
+        monetization: { upiId: 'Glottedu@ptaxis', payeeName: 'PlanPulse', proPrice: 49 },
+        plans: [],
+        history: [],
+        rewards: []
+      };
+    }
+
+    let appState = loadState();
+    let selectedCheckoutPlan = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        return Object.assign(getDefaultState(), JSON.parse(raw));
+      } catch (e) { return getDefaultState(); }
+    }
+
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function copyTextSafe(txt) {
+      if (window.AndroidAdBridge && window.AndroidAdBridge.copyText) {
+        window.AndroidAdBridge.copyText(txt);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(txt).catch(() => {});
+      }
+    }
+
+    function openRegisterModal(allowCancel) {
+      if (appState.user) {
+        document.getElementById('regName').value = appState.user.name || '';
+        document.getElementById('regPhone').value = appState.user.phone || '';
+        document.getElementById('regOperator').value = appState.user.operator || 'Jio';
+        document.getElementById('regPin').value = appState.pin || '';
+      }
+      document.getElementById('regCancelBtn').style.display = allowCancel ? 'block' : 'none';
+      openModal('registerModal');
+    }
+
+    function saveRegistration() {
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
+      const operator = document.getElementById('regOperator').value;
+      const pin = document.getElementById('regPin').value.replace(/\D/g, '');
+
+      if (!name) return showToast('Please enter your name');
+      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number');
+      if (pin.length !== 4) return showToast('Set a 4-digit Vault PIN');
+
+      appState.user = { name, phone, operator };
+      appState.pin = pin;
+      saveState();
+      closeModal('registerModal');
+      renderAll();
+      showToast('Registered ' + phone + ' (' + operator + ')');
+      runRealSmsScan();
+    }
+
+    function runRealSmsScan() {
+      if (!appState.user) return openRegisterModal(false);
+      if (!window.AndroidAdBridge || typeof window.AndroidAdBridge.scanRealRechargeSms !== 'function') {
+        return showToast('Open inside PlanPulse Android app to scan SMS');
+      }
+      const raw = window.AndroidAdBridge.scanRealRechargeSms();
+      if (raw === 'PERMISSION_DENIED') return showToast('Allow SMS permission & tap Auto-Detect again');
+      if (!raw || raw.startsWith('ERROR')) return showToast('SMS Bridge: ' + (raw || 'Empty response'));
+
+      try {
+        const cleanedRaw = raw.replace(/[ -]/g, ' ');
+        const smsList = JSON.parse(cleanedRaw);
+        const now = Date.now();
+        const userPhone = appState.user.phone;
+        const userOp = appState.user.operator.toUpperCase();
+        let added = 0;
+
+        smsList.forEach(item => {
+          const text = (item.snippet || '').toLowerCase();
+          const senderUpper = (item.sender || '').toUpperCase();
+
+          if (/(offer|avail|win|click|http|expired|expires|exhausted|data used|alert|reminder|due)/i.test(text)) return;
+          if (!/(successful|activated|credited|thank you for recharging|recharge of|recharged|plan of)/i.test(text)) return;
+
+          const phoneMatch = text.match(/(?:\+91[\-\s]?)?([6-9]\d{9})/);
+          if (phoneMatch && phoneMatch[1] !== userPhone) return;
+
+          const isOtt = /NETFLIX|HOTSTAR|SPOTIFY|PRIME|YOUTUBE/i.test(senderUpper + ' ' + text);
+          if (!isOtt && !senderUpper.includes(userOp) && !text.includes(userOp.toLowerCase())) return;
+
+          const daysMatch = text.match(/(\d+)\s*days?/i);
+          if (!daysMatch) return;
+          const validDays = parseInt(daysMatch[1], 10);
+
+          const daysElapsed = Math.floor((now - item.dateMs) / (1000 * 60 * 60 * 24));
+          const daysLeft = validDays - daysElapsed;
+          if (daysLeft <= 0) return;
+
+          const category = isOtt ? 'ott' : 'telecom';
+          const title = isOtt
+            ? `${item.sender.replace(/[^A-Z]/gi, '') || 'OTT'} ₹${item.amount} Plan`
+            : `${appState.user.operator} ₹${item.amount} (${userPhone})`;
+
+          const duplicate = appState.plans.some(p => p.amount === item.amount && Math.abs(p.daysLeft - daysLeft) <= 1);
+          if (!duplicate) {
+            appState.plans.unshift({
+              id: 'sms_' + item.dateMs + '_' + item.amount,
+              name: title, category, amount: item.amount, totalDays: validDays, daysLeft, source: 'Verified SMS'
+            });
+            added++;
+          }
+        });
+
+        saveState();
+        renderAll();
+        showToast(added > 0 ? `Found ${added} active plan(s) on ${userPhone}` : `No active plans found on ${userPhone}`);
+      } catch (e) { showToast('SMS Error: ' + e.message); }
+    }
+
+    function addManualPlan() {
+      const name = document.getElementById('planName').value.trim();
+      const category = document.getElementById('planCategory').value;
+      const amount = parseFloat(document.getElementById('planAmount').value);
+      const days = parseInt(document.getElementById('planDays').value, 10) || 28;
+      if (!name || !amount || amount <= 0) return showToast('Enter plan name and valid amount');
+
+      appState.plans.unshift({ id: 'man_' + Date.now(), name, category, amount, totalDays: days, daysLeft: days, source: 'Manual Entry' });
+      document.getElementById('planName').value = '';
+      document.getElementById('planAmount').value = '';
+      saveState();
+      closeModal('addPlanModal');
+      renderAll();
+      showToast('Plan added!');
+    }
+
+    function renewPlan(planId) {
+      if (!appState.user) return openRegisterModal(false);
+      switchTab('recharge', document.querySelectorAll('.nav-item')[2]);
+      switchRechargeSubTab('plans');
+      showToast('Select a plan below to recharge ' + appState.user.phone);
+    }
+
+    function deletePlan(id) {
+      appState.plans = appState.plans.filter(p => p.id !== id);
+      saveState();
+      renderAll();
+      showToast('Plan removed');
+    }
+
+    function switchRechargeSubTab(sub) {
+      document.getElementById('recharge-sub-plans').style.display = (sub === 'plans') ? 'block' : 'none';
+      document.getElementById('recharge-sub-rewards').style.display = (sub === 'rewards') ? 'block' : 'none';
+      document.getElementById('segPlansBtn').classList.toggle('active', sub === 'plans');
+      document.getElementById('segRewardsBtn').classList.toggle('active', sub === 'rewards');
+      if (sub === 'rewards') {
+        renderRewards();
+        syncRewardsFromCloud();
+      }
+    }
+
+    function setCatalogFilter(cat, btn) {
+      appState.catalogFilter = cat;
+      btn.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderRechargeCatalog();
+    }
+
+    function renderRechargeCatalog() {
+      const list = document.getElementById('rechargeCatalogList');
+      const op = document.getElementById('fcOpSelect').value || 'Jio';
+      const catalog = RECHARGE_CATALOG[op] || RECHARGE_CATALOG.Jio;
+      let items = catalog.filter(p => p.cat === appState.catalogFilter);
+      if (!items.length) items = catalog;
+
+      list.innerHTML = items.map(p => `
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <span class="badge">${op} • ${p.validity}</span>
+              <span class="badge badge-ok" style="margin-left:4px;">Est. ${p.cbRange} CB</span>
+              <div class="plan-title" style="margin-top:6px;">₹${p.price} • ${p.data}</div>
+              <div class="plan-meta">${p.perks}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="plan-price">₹${p.price}</div>
+              <button class="btn-renew" style="margin-top:8px;" onclick="openPlanCheckout('${op}', '${p.id}')">Recharge →</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    function openPlanCheckout(op, planId) {
+      const phone = document.getElementById('fcPhoneInput').value.replace(/\D/g, '');
+      if (phone.length !== 10) return showToast('Enter a valid 10-digit mobile number first');
+      const plan = (RECHARGE_CATALOG[op] || []).find(p => p.id === planId);
+      if (!plan) return;
+
+      selectedCheckoutPlan = { ...plan, op, phone };
+      copyTextSafe(phone);
+      document.getElementById('coTitle').textContent = `${op} ₹${plan.price} Recharge`;
+      document.getElementById('coPhone').textContent = phone;
+      document.getElementById('coValidity').textContent = plan.validity;
+      document.getElementById('coEstCb').textContent = plan.cbRange;
+      openModal('checkoutModal');
+    }
+
+    function proceedToPartner(channel) {
+      if (!selectedCheckoutPlan) return;
+      copyTextSafe(selectedCheckoutPlan.phone);
+      const url = (channel === 'operator')
+        ? (PARTNER_RECHARGE_URLS[selectedCheckoutPlan.op] || PARTNER_RECHARGE_URLS.paytm)
+        : (PARTNER_RECHARGE_URLS[channel] || PARTNER_RECHARGE_URLS.paytm);
+      showToast(`Copied ${selectedCheckoutPlan.phone} — Opening ${channel.toUpperCase()}`);
+      setTimeout(() => { window.location.href = url; }, 500);
+    }
+
+    function switchToClaimFromCheckout() {
+      closeModal('checkoutModal');
+      openClaimModal();
+      if (selectedCheckoutPlan) {
+        document.getElementById('claimPhone').value = selectedCheckoutPlan.phone;
+        document.getElementById('claimAmount').value = selectedCheckoutPlan.price;
+      }
+    }
+
+    function openClaimModal() {
+      if (appState.user && appState.user.phone) {
+        document.getElementById('claimPhone').value = appState.user.phone;
+      }
+      openModal('claimModal');
+    }
+
+    function submitRewardClaim() {
+      const phone = document.getElementById('claimPhone').value.replace(/\D/g, '').slice(-10);
+      const amount = parseFloat(document.getElementById('claimAmount').value);
+      const orderId = document.getElementById('claimOrderId').value.trim();
+      const upiId = document.getElementById('claimUpi').value.trim();
+      const operator = (selectedCheckoutPlan && selectedCheckoutPlan.op) || (appState.user && appState.user.operator) || 'Jio';
+
+      if (phone.length !== 10) return showToast('Enter 10-digit recharged mobile number');
+      if (!amount || amount <= 0) return showToast('Enter valid recharge amount');
+      if (!orderId) return showToast('Enter your Transaction / Order ID');
+      if (!upiId || !upiId.includes('@')) return showToast('Enter valid UPI ID for cashback');
+
+      const newClaim = {
+        id: 'CLM' + Date.now().toString().slice(-6),
+        phone,
+        operator,
+        amount,
+        orderId,
+        upiId,
+        status: 'Pending',
+        cashback: 0,
+        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+
+      appState.rewards.unshift(newClaim);
+      appState.history.unshift({
+        id: 'hist_' + Date.now(),
+        title: `${operator} ₹${amount} (${phone})`,
+        amount,
+        orderId,
+        date: newClaim.date,
+        source: 'PlanPulse Store'
+      });
+
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create', claim: newClaim })
+      }).catch(() => {});
+
+      closeModal('claimModal');
+      switchRechargeSubTab('rewards');
+      renderAll();
+      showToast('Claim submitted! Status: Pending');
+    }
+
+    async function syncRewardsFromCloud() {
+      try {
+        const res = await fetch(SHEETS_API_URL);
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.claims)) {
+          appState.rewards = json.claims.map(c => ({
+            ...c,
+            phone: String(c.phone || '').replace(/^'/, '').trim()
+          })).reverse();
+          saveState();
+          renderRewards();
+          if (document.getElementById('adminContentBox').style.display === 'block') {
+            renderAdminClaims();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function renderRewards() {
+      const userPhone = appState.user ? appState.user.phone : '';
+      const myClaims = userPhone
+        ? appState.rewards.filter(r => String(r.phone).replace(/^'/, '') === userPhone)
+        : appState.rewards;
+
+      const approvedTotal = myClaims
+        .filter(r => r.status === 'Approved')
+        .reduce((s, r) => s + (parseFloat(r.cashback) || 0), 0);
+      const pendingCount = myClaims.filter(r => r.status === 'Pending').length;
+
+      document.getElementById('rewardsApprovedTotal').textContent = '₹' + approvedTotal;
+      document.getElementById('rewardsPendingSub').textContent = `${pendingCount} claim(s) awaiting confirmation`;
+
+      const list = document.getElementById('rewardsList');
+      if (!myClaims.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No Cashback Claims Yet</h3><p>Recharge through <b>Browse Plans</b> and tap <b>+ Claim Order</b> to track your cashback status here.</p><button class="btn-pill btn-scan" onclick="openClaimModal()">+ Submit Order ID</button></div>`;
+        return;
+      }
+      list.innerHTML = myClaims.map(r => {
+        const isApproved = r.status === 'Approved';
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge ${isApproved ? 'badge-ok' : 'badge-warn'}">${isApproved ? `🟢 APPROVED • ₹${r.cashback} CREDITED` : '🟡 PENDING VERIFICATION'}</span>
+                <div class="plan-title">${r.operator} ₹${r.amount} • ${r.phone}</div>
+                <div class="plan-meta">Order ID: <b>${r.orderId}</b> • UPI: ${r.upiId} (${r.date})</div>
+              </div>
+              <div class="plan-price" style="color:${isApproved ? 'var(--forest)' : 'var(--gold)'};">${isApproved ? '₹' + r.cashback : 'Pending'}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function openAdminModal() {
+      document.getElementById('adminPinInput').value = '';
+      document.getElementById('adminLockBox').style.display = 'block';
+      document.getElementById('adminContentBox').style.display = 'none';
+      openModal('adminModal');
+    }
+
+    function unlockAdminPanel() {
+      if (document.getElementById('adminPinInput').value !== ADMIN_PIN) return showToast('Wrong Admin PIN');
+      document.getElementById('adminLockBox').style.display = 'none';
+      document.getElementById('adminContentBox').style.display = 'block';
+      renderAdminClaims();
+      syncRewardsFromCloud();
+    }
+
+    function renderAdminClaims() {
+      const box = document.getElementById('adminClaimsList');
+      if (!appState.rewards.length) { box.innerHTML = '<p style="font-size:12px; color:var(--muted);">No claims submitted yet.</p>'; return; }
+      box.innerHTML = appState.rewards.map(r => `
+        <div class="card" style="background:#FAF7F0; margin-bottom:8px;">
+          <div style="font-weight:800; font-size:13px;">${r.operator} ₹${r.amount} • ${r.phone} (${r.status})</div>
+          <div class="plan-meta">Order: <b>${r.orderId}</b> | UPI: <b>${r.upiId}</b></div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input type="number" id="adm_cb_${r.id}" placeholder="Cashback ₹" value="${r.cashback || ''}" style="padding:8px; border-radius:8px; border:1px solid var(--border); width:110px;" />
+            <button class="btn-renew" onclick="approveClaimAdmin('${r.id}')">Approve & Credit</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function approveClaimAdmin(id) {
+      const val = parseFloat(document.getElementById('adm_cb_' + id).value);
+      if (isNaN(val) || val < 0) return showToast('Enter valid ₹ cashback');
+      const item = appState.rewards.find(r => r.id === id);
+      if (!item) return;
+      item.cashback = val;
+      item.status = 'Approved';
+      saveState();
+      fetch(SHEETS_API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'approve', id, cashback: val })
+      }).catch(() => {});
+      renderAdminClaims();
+      renderRewards();
+      showToast(`Approved ₹${val} cashback!`);
+    }
+
+    function setFilter(filter, btn) {
+      appState.currentFilter = filter;
+      document.querySelectorAll('#tab-tracker .chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlans();
+    }
+
+    function switchTab(tab, btn) {
+      ['tracker', 'history', 'recharge', 'profile'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      if (tab === 'recharge') renderRechargeCatalog();
+      if (tab === 'history') renderHistory();
+    }
+
+    function openVaultModal() {
+      if (!appState.pin) return openRegisterModal(false);
+      document.getElementById('vaultPinInput').value = '';
+      document.getElementById('vaultDesc').textContent = appState.vaultLocked
+        ? 'Vault is LOCKED. Enter your 4-digit PIN to reveal amounts & phone number.'
+        : 'Vault is UNLOCKED. Enter your 4-digit PIN to lock sensitive figures.';
+      openModal('vaultModal');
+    }
+
+    function verifyVaultPin() {
+      if (document.getElementById('vaultPinInput').value === appState.pin) {
+        appState.vaultLocked = !appState.vaultLocked;
+        saveState();
+        closeModal('vaultModal');
+        renderAll();
+        showToast(appState.vaultLocked ? 'Vault Locked 🔒' : 'Vault Unlocked 🔓');
+      } else { showToast('Incorrect PIN'); }
+    }
+
+    function payForPro() {
+      window.location.href = `upi://pay?pa=${encodeURIComponent(appState.monetization.upiId)}&pn=${encodeURIComponent(appState.monetization.payeeName)}&am=${appState.monetization.proPrice}&cu=INR&tn=PlanPulsePro`;
+    }
+
+    function activateProTest() {
+      appState.isPro = true;
+      saveState();
+      if (window.AndroidAdBridge && window.AndroidAdBridge.setProStatus) window.AndroidAdBridge.setProStatus(true);
+      closeModal('proModal');
+      renderAll();
+      showToast('PlanPulse Pro Activated!');
+    }
+
+    function exportCSV() {
+      if (!appState.plans.length) return showToast('No plans to export yet');
+      let csv = 'Plan,Category,Amount,DaysLeft,Source
+';
+      appState.plans.forEach(p => { csv += `"${p.name}",${p.category},${p.amount},${p.daysLeft},"${p.source}"
+`; });
+      copyTextSafe(csv);
+      showToast('Plan report copied to clipboard!');
+    }
+
+    function resetAppCompletely() {
+      localStorage.removeItem(STORAGE_KEY);
+      appState = getDefaultState();
+      renderAll();
+      openRegisterModal(false);
+    }
+
+    function mask(val) { return appState.vaultLocked ? '••••' : val; }
+
+    function renderPlans() {
+      const list = document.getElementById('plansList');
+      let filtered = appState.plans;
+      if (appState.currentFilter === 'telecom') filtered = filtered.filter(p => p.category === 'telecom');
+      if (appState.currentFilter === 'ott') filtered = filtered.filter(p => p.category === 'ott');
+      if (appState.currentFilter === 'expiring') filtered = filtered.filter(p => p.daysLeft <= 5);
+
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No Active Plans Found</h3><p>Tap <b>🔔 Auto-Detect</b> above to scan your real recharge SMS automatically, or add a plan manually.</p><button class="btn-pill btn-scan" onclick="runRealSmsScan()">Scan My Recharge SMS</button></div>`;
+        return;
+      }
+      list.innerHTML = filtered.map(p => {
+        const pct = Math.max(5, Math.min(100, Math.round((p.daysLeft / (p.totalDays || 28)) * 100)));
+        const badgeClass = p.daysLeft <= 3 ? 'badge-danger' : (p.daysLeft <= 7 ? 'badge-warn' : 'badge-ok');
+        const targetPhone = appState.user ? appState.user.phone : 'Your Number';
+        return `
+          <div class="card">
+            <div class="card-row">
+              <div>
+                <span class="badge">${p.category.toUpperCase()}</span>
+                <span style="font-size:11px; color:var(--muted); margin-left:6px;">${p.source}</span>
+                <div class="plan-title">${p.name}</div>
+                <div class="plan-meta">For: ${mask(targetPhone)}</div>
+              </div>
+              <div>
+                <span class="badge ${badgeClass}">${p.daysLeft}d left</span>
+                <div class="plan-price">${mask('₹' + p.amount)}</div>
+              </div>
+            </div>
+            <div class="progress-bg"><div class="progress-fill" style="width:${pct}%;"></div></div>
+            <div class="card-actions">
+              <button class="btn-renew" onclick="renewPlan('${p.id}')">Renew on ${mask(targetPhone)} →</button>
+              <button class="btn-del" onclick="deletePlan('${p.id}')">Remove</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      const total = appState.history.reduce((s, h) => s + (parseFloat(h.amount) || 0), 0);
+      document.getElementById('historyTotalBig').textContent = mask('₹' + total);
+      if (!appState.history.length) {
+        list.innerHTML = `<div class="empty-box"><h3>No App Recharges Yet</h3><p>Only recharges completed through PlanPulse's Recharge tab are recorded here.</p></div>`;
+        return;
+      }
+      list.innerHTML = appState.history.map(h => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="badge">${h.source}</span>
+            <div style="font-weight:800; font-size:15px; margin-top:5px;">${h.title}</div>
+            <div style="font-size:12px; color:var(--muted);">Order: ${h.orderId || 'N/A'} • ${h.date}</div>
+          </div>
+          <span style="font-weight:800; font-size:16px; color:var(--forest);">${mask('₹' + h.amount)}</span>
+        </div>`).join('');
+    }
+
+    function renderAll() {
+      if (appState.user) {
+        const maskedPhone = appState.vaultLocked ? '••••••' + appState.user.phone.slice(-4) : appState.user.phone;
+        document.getElementById('userBadge').textContent = `${appState.user.operator} • ${maskedPhone}`;
+        document.getElementById('profileSummary').textContent = `${appState.user.name} | ${appState.user.operator} (${maskedPhone})`;
+        document.getElementById('fcPhoneInput').value = appState.user.phone;
+        document.getElementById('fcOpSelect').value = appState.user.operator;
+      } else {
+        document.getElementById('userBadge').textContent = 'Register Number';
+        document.getElementById('profileSummary').textContent = 'No mobile number registered yet.';
+      }
+      document.getElementById('vaultBtn').textContent = appState.vaultLocked ? '🔒' : '🔓';
+      document.getElementById('proBtn').textContent = appState.isPro ? '★ Pro Active' : '★ Pro ₹49';
+      if (appState.isPro && window.AndroidAdBridge && window.AndroidAdBridge.setProStatus) window.AndroidAdBridge.setProStatus(true);
+
+      const monthlyBurn = appState.plans.reduce((sum, p) => sum + Math.round((p.amount / (p.totalDays || 28)) * 30), 0);
+      const dailyBurn = (monthlyBurn / 30).toFixed(1);
+      const expiringCount = appState.plans.filter(p => p.daysLeft <= 5).length;
+
+      document.getElementById('burnRate').textContent = mask('₹' + monthlyBurn);
+      document.getElementById('burnSub').textContent = `≈ ₹${appState.vaultLocked ? '••' : dailyBurn}/day across ${appState.plans.length} active plan(s)`;
+      document.getElementById('statActive').textContent = appState.plans.length;
+      document.getElementById('statExpiring').textContent = expiringCount;
+      document.getElementById('statHistoryCount').textContent = appState.history.length;
+
+      renderPlans();
+      renderHistory();
+      renderRechargeCatalog();
+      renderRewards();
+    }
+
+    renderAll();
+    syncRewardsFromCloud();
+    if (!appState.user) openRegisterModal(false);
+  </script>
+</body>
+</html>
